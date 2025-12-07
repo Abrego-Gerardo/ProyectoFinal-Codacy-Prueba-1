@@ -1,0 +1,25 @@
+Direccion Principal
+http://localhost/Calidad/DESARROLLO_VII_PROYECTO_FINAL-main/index.php
+
+
+Direcciones para cada pagina
+
+Direcciones de pantallas registro de usuario
+http://localhost/Calidad/DESARROLLO_VII_PROYECTO_FINAL-main/views/login_form.php
+http://localhost/Calidad/DESARROLLO_VII_PROYECTO_FINAL-main/views/register_form.php
+
+Direcciones de pantallas del catalogo
+http://localhost/Calidad/DESARROLLO_VII_PROYECTO_FINAL-main/views/catalogo_viajes.php
+http://localhost/Calidad/DESARROLLO_VII_PROYECTO_FINAL-main/views/buscar_viajes.php
+http://localhost/Calidad/DESARROLLO_VII_PROYECTO_FINAL-main/views/detalles_viajes.php
+http://localhost/Calidad/DESARROLLO_VII_PROYECTO_FINAL-main/views/confirmar_reserva.php
+
+Direccion de pantalla de reservas
+http://localhost/Calidad/DESARROLLO_VII_PROYECTO_FINAL-main/views/detalles_reservas.php
+
+Direcciones de pantallas de administracion
+http://localhost/Calidad/DESARROLLO_VII_PROYECTO_FINAL-main/views/administracion.php
+http://localhost/Calidad/DESARROLLO_VII_PROYECTO_FINAL-main/views/agregar_paquete.php
+
+Direccion de pantallas de contactos
+http://localhost/Calidad/DESARROLLO_VII_PROYECTO_FINAL-main/views/contactos.php
