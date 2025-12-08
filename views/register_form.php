@@ -28,7 +28,7 @@ if (isset($_SESSION['user'])) {
             // Validar token CSRF
             $csrf_token = filter_input(INPUT_POST, "csrf_token", FILTER_SANITIZE_STRING);
             if (!$csrf_token || $csrf_token !== $_SESSION['csrf_token']) {
-                print "<div>Solicitud inválida (CSRF detectado)</div>";
+                echo "<div>Solicitud inválida (CSRF detectado)</div>";
             } else {
                 // Validar entradas
                 $usuario        = filter_input(INPUT_POST, "username", FILTER_SANITIZE_STRING);
@@ -65,7 +65,7 @@ if (isset($_SESSION['user'])) {
 
                 if (count($errors) > 0) {
                     foreach ($errors as $error) {
-                        print "<div>" . htmlspecialchars($error, ENT_QUOTES, 'UTF-8') . "</div>";
+                        echo "<div>" . htmlspecialchars($error, ENT_QUOTES, 'UTF-8') . "</div>";
                     }
                 } else {
                     // Insertar usuario con prepared statement
@@ -74,10 +74,11 @@ if (isset($_SESSION['user'])) {
                     if ($stmt) {
                         $stmt->bind_param("sss", $usuario, $email, $passwordHash);
                         $stmt->execute();
-                        print "<div>Se ha registrado satisfactoriamente</div>";
+                        echo "<div>Se ha registrado satisfactoriamente</div>";
                         $stmt->close();
                     } else {
-                        exit("Error al preparar la consulta.");
+                        echo "<div>Error al preparar la consulta.</div>";
+                        exit();
                     }
                 }
             }
@@ -106,4 +107,5 @@ if (isset($_SESSION['user'])) {
     </div>
 </body>
 </html>
+
 
