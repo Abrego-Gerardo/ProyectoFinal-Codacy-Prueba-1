@@ -1,3 +1,11 @@
+<?php
+session_start();
+
+// Generar nonce CSRF (por consistencia en todo el proyecto)
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -11,12 +19,12 @@
         <div class="left">Detalles de sus Reservas</div>
         <div class="right">
         <?php
-            session_start();
-        if (isset($_SESSION['user'])) {
-            echo "Usuario: " . htmlspecialchars($_SESSION['user']);
-            echo "<a href='logout.php'>Cerrar sesión</a>";
+        if (isset($_SESSION['user']) && is_string($_SESSION['user'])) {
+            $usuario = htmlspecialchars($_SESSION['user'], ENT_QUOTES, 'UTF-8');
+            print "Usuario: {$usuario}";
+            print '<a href="logout.php">Cerrar sesión</a>';
         } else {
-            echo "<a href='login_form.php' style='color: white;'>Iniciar Sesión</a>";
+            print '<a href="login_form.php" style="color: white;">Iniciar Sesión</a>';
         }
         ?>
         </div>
@@ -32,6 +40,8 @@
         <h1>Detalles de sus Reservas</h1>
         <div class="contenido-blanco">
             <!-- Aquí se agregarán los detalles específicos de las reservas del usuario -->
+            <!-- Ejemplo futuro: incluir token CSRF en formularios -->
+            <!-- <input type="hidden" name="csrf_token" value="<?php print htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>"> -->
         </div>
     </div>
     <div class="footer">
@@ -39,6 +49,3 @@
     </div>
 </body>
 </html>
-
-
-
