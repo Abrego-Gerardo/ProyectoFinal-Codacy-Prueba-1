@@ -1,6 +1,6 @@
 CREATE DATABASE agencia_db;
 USE agencia_db;
-CREATE TABLE `destinos` (
+CREATE TABLE "destinos" (
   `id` int(10) NOT NULL,
   `tipo_destino` varchar(50) DEFAULT NULL,
   `pais` varchar(50) DEFAULT NULL,
