@@ -51,7 +51,7 @@ if (isset($_SESSION['user'])) {
                     $errors[] = "Las contraseñas no coinciden";
                 }
 
-                require_once "database.php";
+                require_once __DIR__ . "/../database.php";
 
                 // Consulta segura para verificar si el correo ya existe
                 $stmt = $mysqli->prepare("SELECT id FROM users WHERE email = ?");
