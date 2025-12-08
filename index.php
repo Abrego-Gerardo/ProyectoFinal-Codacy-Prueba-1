@@ -1,20 +1,26 @@
 <?php
-// Conexión a la base de datos
-$conn = new mysqli("localhost", "root", "", "agencia_db");
-if ($conn->connect_error) {
-    die("Conexión fallida: " . $conn->connect_error);
+session_start();
+
+// Conexión a la base de datos con manejo seguro de errores
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+try {
+    $conn = new mysqli("localhost", "root", "", "agencia_db");
+    $conn->set_charset("utf8mb4"); // Charset explícito recomendado
+} catch (Exception $e) {
+    echo "<div>Error de conexión: " . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8') . "</div>";
+    exit();
 }
 
 // Consultas para obtener destinos nacionales e internacionales
-$sql_nacionales = "SELECT * FROM destinos WHERE tipo_destino='Nacional'";
+$sql_nacionales = "SELECT * FROM destinos WHERE tipo_destino = 'Nacional'";
 $result_nacionales = $conn->query($sql_nacionales);
 
-$sql_internacionales = "SELECT * FROM destinos WHERE tipo_destino='Internacional'";
+$sql_internacionales = "SELECT * FROM destinos WHERE tipo_destino = 'Internacional'";
 $result_internacionales = $conn->query($sql_internacionales);
 
 $conn->close();
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -59,10 +65,9 @@ $conn->close();
         <div class="left">Inicio</div>
         <div class="right">
         <?php
-            session_start();
-        if (isset($_SESSION['user'])) {
-            echo "Usuario: " . htmlspecialchars($_SESSION['user']);
-            echo "<a href='views/logout.php'>Cerrar sesión</a>";
+        if (isset($_SESSION['user']) && is_string($_SESSION['user'])) {
+            echo "Usuario: " . htmlspecialchars($_SESSION['user'], ENT_QUOTES, 'UTF-8');
+            echo " <a href='views/logout.php'>Cerrar sesión</a>";
         } else {
             echo "<a href='views/login_form.php' style='color: white;'>Iniciar Sesión</a>";
         }
@@ -82,18 +87,22 @@ $conn->close();
             <h2>Destinos Nacionales</h2>
             <div class="destinos-container">
                 <?php
-                if ($result_nacionales->num_rows > 0) {
+                if ($result_nacionales !== false && $result_nacionales->num_rows > 0) {
                     while ($row = $result_nacionales->fetch_assoc()) {
+                        $id   = (int)$row['id'];
+                        $foto = htmlspecialchars($row['foto'], ENT_QUOTES, 'UTF-8');
+                        $city = htmlspecialchars($row['city'], ENT_QUOTES, 'UTF-8');
+
                         echo "<form action='views/detalles_viaje.php' method='get'>";
-                        echo "<input type='hidden' name='id' value='" . $row['id'] . "'>";
+                        echo "<input type='hidden' name='id' value='{$id}'>";
                         echo "<button type='submit' class='destino'>";
-                        echo "<img src='" . $row['foto'] . "' alt='" . $row['city'] . "'>";
-                        echo "<h3>" . htmlspecialchars($row['city']) . "</h3>";
+                        echo "<img src='{$foto}' alt='{$city}'>";
+                        echo "<h3>{$city}</h3>";
                         echo "</button>";
                         echo "</form>";
                     }
                 } else {
-                    echo "No hay destinos nacionales disponibles.";
+                    echo "<div>No hay destinos nacionales disponibles.</div>";
                 }
                 ?>
             </div>
@@ -101,18 +110,22 @@ $conn->close();
             <h2>Destinos Internacionales</h2>
             <div class="destinos-container">
                 <?php
-                if ($result_internacionales->num_rows > 0) {
+                if ($result_internacionales !== false && $result_internacionales->num_rows > 0) {
                     while ($row = $result_internacionales->fetch_assoc()) {
+                        $id   = (int)$row['id'];
+                        $foto = htmlspecialchars($row['foto'], ENT_QUOTES, 'UTF-8');
+                        $city = htmlspecialchars($row['city'], ENT_QUOTES, 'UTF-8');
+
                         echo "<form action='views/detalles_viaje.php' method='get'>";
-                        echo "<input type='hidden' name='id' value='" . $row['id'] . "'>";
+                        echo "<input type='hidden' name='id' value='{$id}'>";
                         echo "<button type='submit' class='destino'>";
-                        echo "<img src='" . $row['foto'] . "' alt='" . $row['city'] . "'>";
-                        echo "<h3>" . htmlspecialchars($row['city']) . "</h3>";
+                        echo "<img src='{$foto}' alt='{$city}'>";
+                        echo "<h3>{$city}</h3>";
                         echo "</button>";
                         echo "</form>";
                     }
                 } else {
-                    echo "No hay destinos internacionales disponibles.";
+                    echo "<div>No hay destinos internacionales disponibles.</div>";
                 }
                 ?>
             </div>
@@ -123,3 +136,4 @@ $conn->close();
     </div>
 </body>
 </html>
+
