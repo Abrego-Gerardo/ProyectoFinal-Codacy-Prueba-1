@@ -31,7 +31,7 @@ $result = $stmt->get_result();
             $result = mysqli_query($conn, $sql);
             $user = mysqli_fetch_array($result, MYSQLI_ASSOC);
             if ($user) {
-                if (password_verify($password, $user["password"])) {
+                if (password_verify($password, $user["password"]) === TRUE) {
                     if ($user["usertype"] == "usuario") {
                         session_start();
                         $_SESSION["user"] = $user["username"];
