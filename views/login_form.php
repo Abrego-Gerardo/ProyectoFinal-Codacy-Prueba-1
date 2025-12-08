@@ -2,6 +2,7 @@
 session_start();
 if (isset($_SESSION['user'])) {
     header("Location: ../index.php");
+    exit();
 }
 ?>
 <!DOCTYPE html>
@@ -17,39 +18,41 @@ if (isset($_SESSION['user'])) {
         <h1>Gestión de Usuarios</h1>
         <?php
         if (isset($_POST["login"])) {
-            $email = $_POST["email"];
-            $password = $_POST["password"];
-            
-            require_once __DIR__ . "/../database.php";
-            
-            $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
-$stmt->bind_param("s", $email);
-$stmt->execute();
-$result = $stmt->get_result();
-            
-            $sql = "SELECT * FROM users WHERE email = '$email'";
-            $result = mysqli_query($conn, $sql);
-            $user = mysqli_fetch_array($result, MYSQLI_ASSOC);
-            if ($user) {
-                if (password_verify($password, $user["password"]) === TRUE) {
-                    if ($user["usertype"] == "usuario") {
-                        session_start();
+            // Validar entradas
+            $email = filter_input(INPUT_POST, "email", FILTER_VALIDATE_EMAIL);
+            $password = filter_input(INPUT_POST, "password", FILTER_SANITIZE_STRING);
+
+            if ($email && $password) {
+                require_once __DIR__ . "/../database.php";
+
+                // Consulta segura con prepared statement
+                $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
+                $stmt->bind_param("s", $email);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                $user = $result->fetch_assoc();
+                $stmt->close();
+
+                if ($user) {
+                    if (password_verify($password, $user["password"]) === true) {
                         $_SESSION["user"] = $user["username"];
                         $_SESSION["usertype"] = $user["usertype"];
-                        header("Location: ../index.php");
-                        die();
+
+                        if ($user["usertype"] === "usuario") {
+                            header("Location: ../index.php");
+                            exit();
+                        } else {
+                            header("Location: ../views/administracion.php");
+                            exit();
+                        }
                     } else {
-                        session_start();
-                        $_SESSION["user"] = $user["username"];
-                        $_SESSION["usertype"] = $user["usertype"];
-                        header("Location: ../views/administracion.php");
-                        die();
+                        print "<div>El correo/contraseña fue incorrecto</div>";
                     }
                 } else {
-                    echo "<div>El correo/contraseña fue incorrecto</div>";
+                    print "<div>No existe una cuenta asociada a ese correo</div>";
                 }
             } else {
-                echo "<div>No existe una cuenta asociada a ese correo</div>";
+                print "<div>Entrada inválida</div>";
             }
         }
         ?>
@@ -70,3 +73,5 @@ $result = $stmt->get_result();
     </div>
 </body>
 </html>
+
+
