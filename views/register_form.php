@@ -52,11 +52,12 @@ if (isset($_SESSION['user'])) {
 
 
 
-            if (count($errors) > 0) {
-                foreach ($errors as $error) {
-                    echo "<div>$error</div>";
-                }
-            } else {
+            <?php
+if (count($errors) > 0) {
+    foreach ($errors as $error) {
+        echo "<div>" . htmlspecialchars($error, ENT_QUOTES, 'UTF-8') . "</div>";
+    }
+} else {
                 //Agregamos la información en la base de datos
                 $sql = "INSERT INTO users (username, email, password) VALUES ( ?, ?, ?)";
                 $stmt = mysqli_stmt_init($conn);
