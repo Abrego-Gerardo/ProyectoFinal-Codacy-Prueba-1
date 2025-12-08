@@ -19,12 +19,13 @@ if (isset($_SESSION['user'])) {
         if (isset($_POST["login"])) {
             $email = $_POST["email"];
             $password = $_POST["password"];
-            require_once "database.php";
+            
+            require_once __DIR__ . "/../database.php";
             
             $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
-            $stmt->bind_param("s", $email);
-            $stmt->execute();
-            $result = $stmt->get_result();
+$stmt->bind_param("s", $email);
+$stmt->execute();
+$result = $stmt->get_result();
             
             $sql = "SELECT * FROM users WHERE email = '$email'";
             $result = mysqli_query($conn, $sql);
