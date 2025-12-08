@@ -56,7 +56,7 @@ $conn->close();
                 <img src='../<?php echo $row["foto"]; ?>' alt='<?php echo $row["city"]; ?>'>
                 <h2><?php echo $row["city"] . ", " . $row["pais"]; ?></h2>
                 <p>Tipo de Destino: <?php echo $row["tipo_destino"]; ?></p>
-                <p>Precio Niño: $<?php echo $row["precio_nino"]; ?></p>
+                <p>Precio Niño: $<?php echo htmlspecialchars($row["precio_nino"], ENT_QUOTES, 'UTF-8'); ?></p>
                 <p>Precio Adulto: $<?php echo $row["precio_adulto"]; ?></p>
                 <p>Precio Mayor: $<?php echo htmlspecialchars($row["precio_mayor"], ENT_QUOTES, 'UTF-8'); ?></p>
                 <p>Detalles: <?php echo isset($row["detalles"]) ? nl2br(htmlspecialchars($row["detalles"])) : "No hay detalles disponibles"; ?></p>
