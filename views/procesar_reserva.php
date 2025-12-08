@@ -1,20 +1,38 @@
 <?php
+session_start();
+
 // Conexión a la base de datos
 $conn = new mysqli("localhost", "root", "", "agencia_db");
 if ($conn->connect_error) {
-    die("Conexión fallida: " . $conn->connect_error);
+    die("Conexión fallida: " . htmlspecialchars($conn->connect_error, ENT_QUOTES, 'UTF-8'));
 }
 
-// Obtener detalles del destino seleccionado
-$id_viaje = $_POST['id_viaje'];
-$sql = "SELECT * FROM destinos WHERE id = $id_viaje";
-$result = $conn->query($sql);
+// Generar nonce CSRF
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 
-if ($result->num_rows > 0) {
-    $destino = $result->fetch_assoc();
+// Obtener detalles del destino seleccionado de manera segura
+$id_viaje = filter_input(INPUT_POST, 'id_viaje', FILTER_VALIDATE_INT);
+
+$destino = null;
+if ($id_viaje !== false && $id_viaje !== null) {
+    $stmt = $conn->prepare("SELECT * FROM destinos WHERE id = ?");
+    $stmt->bind_param("i", $id_viaje);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result && $result->num_rows > 0) {
+        $destino = $result->fetch_assoc();
+    } else {
+        die("Destino no encontrado.");
+    }
+    $stmt->close();
 } else {
-    die("Destino no encontrado.");
+    die("Solicitud inválida.");
 }
+
+$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -31,23 +49,20 @@ if ($result->num_rows > 0) {
         justify-content: center;
         margin-bottom: 10px;
     }
-
     .contador button {
         width: 30px;
         height: 30px;
         margin: 0 5px;
-        background-color: #83070b; /* Color rojo */
+        background-color: #83070b;
         color: white;
         border: none;
         border-radius: 3px;
         font-size: 18px;
         cursor: pointer;
     }
-
     .contador button:hover {
-        background-color: #83070b; /* Color rojo más oscuro al pasar el mouse */
+        background-color: #5a0508;
     }
-
     .contador input {
         width: 50px;
         text-align: center;
@@ -56,29 +71,25 @@ if ($result->num_rows > 0) {
         border-radius: 3px;
         margin: 0 5px;
     }
-
     .precio-final {
         font-size: 18px;
         font-weight: bold;
         color: #333;
         margin-top: 20px;
     }
-</style>
-
+    </style>
 </head>
 <body>
     <div class="header">
         <div class="left">Procesar Reserva</div>
         <div class="right">
         <?php
-        session_start();
         if (isset($_SESSION['user']) && is_string($_SESSION['user'])) {
-        $usuario = htmlspecialchars($_SESSION['user'], ENT_QUOTES, 'UTF-8');
-        echo "Usuario: " . $usuario;
-        echo "<a href='logout.php'>Cerrar sesión</a>";
-        }
-        else {
-            echo "<a href='login_form.php' style='color: white;'>Iniciar Sesión</a>";
+            $usuario = htmlspecialchars($_SESSION['user'], ENT_QUOTES, 'UTF-8');
+            print "Usuario: {$usuario}";
+            print '<a href="logout.php">Cerrar sesión</a>';
+        } else {
+            print '<a href="login_form.php" style="color: white;">Iniciar Sesión</a>';
         }
         ?>
         </div>
@@ -92,45 +103,57 @@ if ($result->num_rows > 0) {
     </div>
     <div class="main-content">
         <h1>Procesar Reserva</h1>
+        <?php if ($destino) : ?>
         <div class="detalle-reserva">
-            <h2><?php echo $destino["city"] . ", " . $destino["pais"]; ?></h2>
-            <p>Precio Niño: $<?php echo $destino["precio_nino"]; ?></p>
-            <p>Precio Adulto: $<?php echo $destino["precio_adulto"]; ?></p>
-            <p>Precio Niño: $<?php echo htmlspecialchars($destino["precio_nino"], ENT_QUOTES, 'UTF-8'); ?></p>
+            <?php
+            $city        = htmlspecialchars($destino["city"], ENT_QUOTES, 'UTF-8');
+            $pais        = htmlspecialchars($destino["pais"], ENT_QUOTES, 'UTF-8');
+            $precio_nino = htmlspecialchars($destino["precio_nino"], ENT_QUOTES, 'UTF-8');
+            $precio_adulto = htmlspecialchars($destino["precio_adulto"], ENT_QUOTES, 'UTF-8');
+            $precio_mayor  = htmlspecialchars($destino["precio_mayor"], ENT_QUOTES, 'UTF-8');
+            ?>
+            <h2><?php print "{$city}, {$pais}"; ?></h2>
+            <p>Precio Niño: $<?php print $precio_nino; ?></p>
+            <p>Precio Adulto: $<?php print $precio_adulto; ?></p>
+            <p>Precio Mayor: $<?php print $precio_mayor; ?></p>
 
             <!-- Precio total dinámico -->
             <p class="precio-final">Precio Total: $<span id="precio_total">0</span></p>
 
             <form action="confirmar_reserva.php" method="post">
-                <input type="hidden" name="id_viaje" value="<?php echo $destino['id']; ?>">
+                <input type="hidden" name="id_viaje" value="<?php print (int)$destino['id']; ?>">
+                <input type="hidden" name="csrf_token" value="<?php print htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>">
 
                 <!-- Contador para niños -->
                 <label for="cantidad_ninos">Cantidad de Niños:</label>
                 <div class="contador">
-                    <button type="button" onclick="actualizarCantidad('cantidad_adultos', -1, <?php echo htmlspecialchars($destino['precio_adulto'], ENT_QUOTES, 'UTF-8'); ?>)">
+                    <button type="button" onclick="actualizarCantidad('cantidad_ninos', -1, <?php print $precio_nino; ?>)">-</button>
                     <input type="number" id="cantidad_ninos" name="cantidad_ninos" value="0" min="0" readonly>
-                    <button type="button" onclick="actualizarCantidad('cantidad_ninos', 1, <?php echo $destino['precio_nino']; ?>)">+</button>
+                    <button type="button" onclick="actualizarCantidad('cantidad_ninos', 1, <?php print $precio_nino; ?>)">+</button>
                 </div>
 
                 <!-- Contador para adultos -->
                 <label for="cantidad_adultos">Cantidad de Adultos:</label>
                 <div class="contador">
-                    <button type="button" onclick="actualizarCantidad('cantidad_adultos', -1, <?php echo $destino['precio_adulto']; ?>)">-</button>
+                    <button type="button" onclick="actualizarCantidad('cantidad_adultos', -1, <?php print $precio_adulto; ?>)">-</button>
                     <input type="number" id="cantidad_adultos" name="cantidad_adultos" value="0" min="0" readonly>
-                    <button type="button" onclick="actualizarCantidad('cantidad_adultos', 1, <?php echo $destino['precio_adulto']; ?>)">+</button>
+                    <button type="button" onclick="actualizarCantidad('cantidad_adultos', 1, <?php print $precio_adulto; ?>)">+</button>
                 </div>
 
                 <!-- Contador para mayores -->
                 <label for="cantidad_mayores">Cantidad de Mayores:</label>
                 <div class="contador">
-                    <button type="button" onclick="actualizarCantidad('cantidad_mayores', -1, <?php echo $destino['precio_mayor']; ?>)">-</button>
+                    <button type="button" onclick="actualizarCantidad('cantidad_mayores', -1, <?php print $precio_mayor; ?>)">-</button>
                     <input type="number" id="cantidad_mayores" name="cantidad_mayores" value="0" min="0" readonly>
-                    <button type="button" onclick="actualizarCantidad('cantidad_mayores', 1, <?php echo $destino['precio_mayor']; ?>)">+</button>
+                    <button type="button" onclick="actualizarCantidad('cantidad_mayores', 1, <?php print $precio_mayor; ?>)">+</button>
                 </div>
 
                 <button type="submit">Confirmar Reserva</button>
             </form>
         </div>
+        <?php else : ?>
+            <p>No se encontraron detalles para este destino.</p>
+        <?php endif; ?>
     </div>
     <div class="footer">
         <p>&copy; 2024 Agencia de Viajes. Todos los derechos reservados.</p>
@@ -138,23 +161,16 @@ if ($result->num_rows > 0) {
 
     <script>
         let totalPrecio = 0;
-
         function actualizarCantidad(id, cambio, precio) {
             const input = document.getElementById(id);
             const valorActual = parseInt(input.value);
-            const nuevoValor = Math.max(0, valorActual + cambio); // Evitar valores negativos
+            const nuevoValor = Math.max(0, valorActual + cambio);
             input.value = nuevoValor;
 
-            // Actualizar precio total
             totalPrecio += cambio * precio;
-            totalPrecio = Math.max(0, totalPrecio); // Evitar precios negativos
+            totalPrecio = Math.max(0, totalPrecio);
             document.getElementById('precio_total').textContent = totalPrecio.toFixed(2);
         }
     </script>
 </body>
 </html>
-
-
-
-
-
