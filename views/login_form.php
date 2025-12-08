@@ -39,7 +39,7 @@ if (isset($_SESSION['user'])) {
             // Validar token CSRF
             $csrf_token = filter_input(INPUT_POST, "csrf_token", FILTER_SANITIZE_STRING);
             if (!$csrf_token || $csrf_token !== $_SESSION['csrf_token']) {
-                print "<div>Solicitud inválida (CSRF detectado)</div>";
+                echo "<div>Solicitud inválida (CSRF detectado)</div>";
             } else {
                 // Validar entradas
                 $email = filter_input(INPUT_POST, "email", FILTER_VALIDATE_EMAIL);
@@ -67,13 +67,13 @@ if (isset($_SESSION['user'])) {
                                 safe_redirect("../views/administracion.php");
                             }
                         } else {
-                            print "<div>El correo/contraseña fue incorrecto</div>";
+                            echo "<div>El correo/contraseña fue incorrecto</div>";
                         }
                     } else {
-                        print "<div>No existe una cuenta asociada a ese correo</div>";
+                        echo "<div>No existe una cuenta asociada a ese correo</div>";
                     }
                 } else {
-                    print "<div>Entrada inválida</div>";
+                    echo "<div>Entrada inválida</div>";
                 }
             }
         }
@@ -96,5 +96,6 @@ if (isset($_SESSION['user'])) {
     </div>
 </body>
 </html>
+
 
 
