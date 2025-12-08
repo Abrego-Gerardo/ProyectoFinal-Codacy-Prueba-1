@@ -1,3 +1,11 @@
+<?php
+session_start();
+
+// Generar nonce CSRF
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -44,12 +52,12 @@
         <div class="left">Catálogo de Viajes</div>
         <div class="right">
         <?php
-            session_start();
-        if (isset($_SESSION['user'])) {
-            echo "Usuario: " . htmlspecialchars($_SESSION['user']);
-            echo "<a href='logout.php'>Cerrar sesión</a>";
+        if (isset($_SESSION['user']) && is_string($_SESSION['user'])) {
+            $usuario = htmlspecialchars($_SESSION['user'], ENT_QUOTES, 'UTF-8');
+            print "Usuario: {$usuario}";
+            print '<a href="logout.php">Cerrar sesión</a>';
         } else {
-            echo "<a href='login_form.php' style='color: white;'>Iniciar Sesión</a>";
+            print '<a href="login_form.php" style="color: white;">Iniciar Sesión</a>';
         }
         ?>
         </div>
@@ -64,31 +72,39 @@
     <div class="main-content">
         <h1>¿A dónde quieres ir?</h1>
         <form action="buscar_viajes.php" method="post">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>">
+
             <label for="origen">Origen:</label>
             <select id="origen" name="origen" required>
                 <option value="Nacional">Nacional</option>
                 <option value="Internacional">Internacional</option>
             </select>
+
             <label for="destino">Destino:</label>
             <select id="destino" name="destino" required>
                 <option value="Nacional">Nacional</option>
                 <option value="Internacional">Internacional</option>
             </select>
+
             <label for="fecha_salida">Fecha de Salida:</label>
             <input type="date" id="fecha_salida" name="fecha_salida" required onchange="validarFechaRegreso()">
+
             <label for="fecha_regreso">Fecha de Regreso:</label>
             <input type="date" id="fecha_regreso" name="fecha_regreso" required>
+
             <label for="tipo_viaje">Tipo de Viaje:</label>
             <select id="tipo_viaje" name="tipo_viaje" required>
                 <option value="aire">Aire</option>
                 <option value="mar">Mar</option>
                 <option value="tierra">Tierra</option>
             </select>
+
             <div class="slider-container">
                 <label for="precio">Rango de precio máximo por persona:</label>
                 <input type="range" id="precio" name="precio" class="slider" min="0" max="1000" step="10" oninput="this.nextElementSibling.value = '$' + this.value">
                 <output>$500</output>
             </div>
+
             <button type="submit">Buscar Viaje</button>
         </form>
     </div>
@@ -97,5 +113,6 @@
     </div>
 </body>
 </html>
+
 
 
