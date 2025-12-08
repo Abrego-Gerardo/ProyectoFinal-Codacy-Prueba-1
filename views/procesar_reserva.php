@@ -4,7 +4,7 @@ session_start();
 // Conexión a la base de datos
 $conn = new mysqli("localhost", "root", "", "agencia_db");
 if ($conn->connect_error) {
-    die("Conexión fallida: " . htmlspecialchars($conn->connect_error, ENT_QUOTES, 'UTF-8'));
+    exit("Conexión fallida: " . htmlspecialchars($conn->connect_error, ENT_QUOTES, 'UTF-8'));
 }
 
 // Generar nonce CSRF
@@ -25,11 +25,11 @@ if ($id_viaje !== false && $id_viaje !== null) {
     if ($result && $result->num_rows > 0) {
         $destino = $result->fetch_assoc();
     } else {
-        die("Destino no encontrado.");
+        exit("Destino no encontrado.");
     }
     $stmt->close();
 } else {
-    die("Solicitud inválida.");
+    exit("Solicitud inválida.");
 }
 
 $conn->close();
@@ -106,16 +106,16 @@ $conn->close();
         <?php if ($destino) : ?>
         <div class="detalle-reserva">
             <?php
-            $city        = htmlspecialchars($destino["city"], ENT_QUOTES, 'UTF-8');
-            $pais        = htmlspecialchars($destino["pais"], ENT_QUOTES, 'UTF-8');
-            $precio_nino = htmlspecialchars($destino["precio_nino"], ENT_QUOTES, 'UTF-8');
-            $precio_adulto = htmlspecialchars($destino["precio_adulto"], ENT_QUOTES, 'UTF-8');
-            $precio_mayor  = htmlspecialchars($destino["precio_mayor"], ENT_QUOTES, 'UTF-8');
+            $city          = htmlspecialchars($destino["city"], ENT_QUOTES, 'UTF-8');
+            $pais          = htmlspecialchars($destino["pais"], ENT_QUOTES, 'UTF-8');
+            $precio_nino   = (float)$destino["precio_nino"];
+            $precio_adulto = (float)$destino["precio_adulto"];
+            $precio_mayor  = (float)$destino["precio_mayor"];
             ?>
             <h2><?php print "{$city}, {$pais}"; ?></h2>
-            <p>Precio Niño: $<?php print $precio_nino; ?></p>
-            <p>Precio Adulto: $<?php print $precio_adulto; ?></p>
-            <p>Precio Mayor: $<?php print $precio_mayor; ?></p>
+            <p>Precio Niño: $<?php print htmlspecialchars($precio_nino, ENT_QUOTES, 'UTF-8'); ?></p>
+            <p>Precio Adulto: $<?php print htmlspecialchars($precio_adulto, ENT_QUOTES, 'UTF-8'); ?></p>
+            <p>Precio Mayor: $<?php print htmlspecialchars($precio_mayor, ENT_QUOTES, 'UTF-8'); ?></p>
 
             <!-- Precio total dinámico -->
             <p class="precio-final">Precio Total: $<span id="precio_total">0</span></p>
@@ -174,3 +174,5 @@ $conn->close();
     </script>
 </body>
 </html>
+
+
