@@ -12,7 +12,8 @@ try {
     $mysqli = new mysqli($hostName, $dbUser, $dbPassword, $dbName);
     $mysqli->set_charset("utf8mb4"); // Codacy recomienda definir charset explícito
 } catch (Exception $e) {
-    exit("Error de conexión: " . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8'));
+    echo "<div>Error de conexión: " . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8') . "</div>";
+    exit();
 }
 
 return $mysqli;
