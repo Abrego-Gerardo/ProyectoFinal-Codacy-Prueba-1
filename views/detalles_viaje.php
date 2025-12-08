@@ -58,7 +58,7 @@ $conn->close();
                 <p>Tipo de Destino: <?php echo $row["tipo_destino"]; ?></p>
                 <p>Precio Niño: $<?php echo $row["precio_nino"]; ?></p>
                 <p>Precio Adulto: $<?php echo $row["precio_adulto"]; ?></p>
-                <p>Precio Mayor: $<?php echo $row["precio_mayor"]; ?></p>
+                <p>Precio Mayor: $<?php echo htmlspecialchars($row["precio_mayor"], ENT_QUOTES, 'UTF-8'); ?></p>
                 <p>Detalles: <?php echo isset($row["detalles"]) ? nl2br(htmlspecialchars($row["detalles"])) : "No hay detalles disponibles"; ?></p>
                 <form action="procesar_reserva.php" method="post">
                     <input type="hidden" name="id_viaje" value="<?php echo $row['id']; ?>">
