@@ -71,11 +71,14 @@ if ($result->num_rows > 0) {
         <div class="left">Procesar Reserva</div>
         <div class="right">
         <?php
-            session_start();
-        if (isset($_SESSION['user'])) {
-            echo "Usuario: " . htmlspecialchars($_SESSION['user']);
-            echo "<a href='logout.php'>Cerrar sesión</a>";
-        } else {
+        session_start();
+
+        if (isset($_SESSION['user']) && is_string($_SESSION['user'])) {
+        $usuario = htmlspecialchars($_SESSION['user'], ENT_QUOTES, 'UTF-8');
+        echo "Usuario: " . $usuario;
+        echo "<a href='logout.php'>Cerrar sesión</a>";
+        }
+        else {
             echo "<a href='login_form.php' style='color: white;'>Iniciar Sesión</a>";
         }
         ?>
@@ -151,6 +154,7 @@ if ($result->num_rows > 0) {
     </script>
 </body>
 </html>
+
 
 
 
