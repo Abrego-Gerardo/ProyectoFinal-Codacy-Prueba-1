@@ -105,7 +105,7 @@ if ($result->num_rows > 0) {
                 <!-- Contador para niños -->
                 <label for="cantidad_ninos">Cantidad de Niños:</label>
                 <div class="contador">
-                    <button type="button" onclick="actualizarCantidad('cantidad_ninos', -1, <?php echo $destino['precio_nino']; ?>)">-</button>
+                    <button type="button" onclick="actualizarCantidad('cantidad_adultos', -1, <?php echo htmlspecialchars($destino['precio_adulto'], ENT_QUOTES, 'UTF-8'); ?>)">
                     <input type="number" id="cantidad_ninos" name="cantidad_ninos" value="0" min="0" readonly>
                     <button type="button" onclick="actualizarCantidad('cantidad_ninos', 1, <?php echo $destino['precio_nino']; ?>)">+</button>
                 </div>
@@ -151,4 +151,5 @@ if ($result->num_rows > 0) {
     </script>
 </body>
 </html>
+
 
