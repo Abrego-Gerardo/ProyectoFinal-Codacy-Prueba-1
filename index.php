@@ -60,13 +60,13 @@ $conn->close();
         <div class="right">
         <?php
             session_start();
-            if (isset($_SESSION['user'])) {
-                echo "Usuario: " . htmlspecialchars($_SESSION['user']);
-                echo "<a href='views/logout.php'>Cerrar sesión</a>";
-            } else {
-                echo "<a href='views/login_form.php' style='color: white;'>Iniciar Sesión</a>";
-            }
-            ?>
+if (isset($_SESSION['user'])) {
+    echo "Usuario: " . htmlspecialchars($_SESSION['user']);
+    echo "<a href='views/logout.php'>Cerrar sesión</a>";
+} else {
+    echo "<a href='views/login_form.php' style='color: white;'>Iniciar Sesión</a>";
+}
+?>
         </div>
     </div>
     <div class="nav">
@@ -82,39 +82,39 @@ $conn->close();
             <h2>Destinos Nacionales</h2>
             <div class="destinos-container">
                 <?php
-                if ($result_nacionales->num_rows > 0) {
-                    while($row = $result_nacionales->fetch_assoc()) {
-                        echo "<form action='views/detalles_viaje.php' method='get'>";
-                        echo "<input type='hidden' name='id' value='" . $row['id'] . "'>";
-                        echo "<button type='submit' class='destino'>";
-                        echo "<img src='" . $row['foto'] . "' alt='" . $row['city'] . "'>";
-                        echo "<h3>" . htmlspecialchars($row['city']) . "</h3>";
-                        echo "</button>";
-                        echo "</form>";
-                    }
-                } else {
-                    echo "No hay destinos nacionales disponibles.";
-                }
-                ?>
+        if ($result_nacionales->num_rows > 0) {
+            while ($row = $result_nacionales->fetch_assoc()) {
+                echo "<form action='views/detalles_viaje.php' method='get'>";
+                echo "<input type='hidden' name='id' value='" . $row['id'] . "'>";
+                echo "<button type='submit' class='destino'>";
+                echo "<img src='" . $row['foto'] . "' alt='" . $row['city'] . "'>";
+                echo "<h3>" . htmlspecialchars($row['city']) . "</h3>";
+                echo "</button>";
+                echo "</form>";
+            }
+        } else {
+            echo "No hay destinos nacionales disponibles.";
+        }
+?>
             </div>
 
             <h2>Destinos Internacionales</h2>
             <div class="destinos-container">
                 <?php
-                if ($result_internacionales->num_rows > 0) {
-                    while($row = $result_internacionales->fetch_assoc()) {
-                        echo "<form action='views/detalles_viaje.php' method='get'>";
-                        echo "<input type='hidden' name='id' value='" . $row['id'] . "'>";
-                        echo "<button type='submit' class='destino'>";
-                        echo "<img src='" . $row['foto'] . "' alt='" . $row['city'] . "'>";
-                        echo "<h3>" . htmlspecialchars($row['city']) . "</h3>";
-                        echo "</button>";
-                        echo "</form>";
-                    }
-                } else {
-                    echo "No hay destinos internacionales disponibles.";
-                }
-                ?>
+if ($result_internacionales->num_rows > 0) {
+    while ($row = $result_internacionales->fetch_assoc()) {
+        echo "<form action='views/detalles_viaje.php' method='get'>";
+        echo "<input type='hidden' name='id' value='" . $row['id'] . "'>";
+        echo "<button type='submit' class='destino'>";
+        echo "<img src='" . $row['foto'] . "' alt='" . $row['city'] . "'>";
+        echo "<h3>" . htmlspecialchars($row['city']) . "</h3>";
+        echo "</button>";
+        echo "</form>";
+    }
+} else {
+    echo "No hay destinos internacionales disponibles.";
+}
+?>
             </div>
         </div>
     </div>

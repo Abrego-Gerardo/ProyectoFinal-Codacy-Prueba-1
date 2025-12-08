@@ -11,4 +11,3 @@ if (!$conn) {
 }
 $mysqli = new mysqli($hostName, $dbUser, $dbPassword, $dbName);
 return $mysqli;
-?>

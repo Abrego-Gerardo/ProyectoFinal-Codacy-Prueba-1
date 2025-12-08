@@ -26,35 +26,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Verificar si el archivo es una imagen
     $check = getimagesize($_FILES['foto']['tmp_name']);
     if ($check !== false) {
-
         // Permitir solo ciertos formatos
         $allowed_types = array('jpg', 'jpeg', 'png', 'gif');
         if (in_array($imageFileType, $allowed_types)) {
-
             // Verificar directorio
             if (!file_exists($target_dir)) {
                 mkdir($target_dir, 0777, true);
             }
 
             if (move_uploaded_file($_FILES['foto']['tmp_name'], $target_file)) {
-
                 $sql = "INSERT INTO destinos (city, tipo_destino, precio_nino, precio_adulto, precio_mayor, detalles, foto) 
                         VALUES ('$nombre', '$tipo_destino', '$precio_nino', '$precio_adulto', '$precio_mayor', '$detalles', '$target_file')";
 
-                if ($conn->query($sql) === TRUE) {
+                if ($conn->query($sql) === true) {
                     $mensaje = "Paquete creado correctamente.";
                 } else {
                     $mensaje = "Error al crear el paquete: " . $conn->error;
                 }
-
             } else {
                 $mensaje = "Error al subir la imagen.";
             }
-
         } else {
             $mensaje = "Solo se permiten archivos JPG, JPEG, PNG y GIF.";
         }
-
     } else {
         $mensaje = "El archivo no es una imagen.";
     }
@@ -87,13 +81,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="left">Agregar Paquete</div>
         <div class="right">
             <?php
-                if (isset($_SESSION['user'])) {
-                    echo "Usuario: " . htmlspecialchars($_SESSION['user']);
-                    echo "<a href='logout.php'>Cerrar sesión</a>";
-                } else {
-                    echo "<a href='login_form.php' style='color: white;'>Iniciar Sesión</a>";
-                }
-            ?>
+            if (isset($_SESSION['user'])) {
+                echo "Usuario: " . htmlspecialchars($_SESSION['user']);
+                echo "<a href='logout.php'>Cerrar sesión</a>";
+            } else {
+                echo "<a href='login_form.php' style='color: white;'>Iniciar Sesión</a>";
+            }
+?>
         </div>
     </div>
 
@@ -109,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <h1>Agregar Detalles del Paquete</h1>
 
         <!-- Mostrar mensaje sin usar echo en el proceso PHP -->
-        <?php if (!empty($mensaje)): ?>
+        <?php if (!empty($mensaje)) : ?>
             <div class="alert">
                 <?= htmlspecialchars($mensaje); ?>
             </div>

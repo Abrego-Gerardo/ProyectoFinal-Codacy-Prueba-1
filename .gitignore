@@ -1,0 +1,27 @@
+# Composer
+composer.phar
+composer.json
+composer.lock
+vendor/
+
+# PHP-CS-Fixer cache
+.php-cs-fixer.cache
+.php_cs.cache
+php-cs-fixer.phar
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node/npm (si aplica)
+node_modules/
+npm-debug.log
+
+# Logs
+*.log

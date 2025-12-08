@@ -1,8 +1,8 @@
 <?php
-    session_start();
-    if (isset($_SESSION['user'])) {
-        header("Location: ../index.php");
-    }
+session_start();
+if (isset($_SESSION['user'])) {
+    header("Location: ../index.php");
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -27,17 +27,17 @@
 
                 $errors = array();
 
-                if (empty($usuario) OR empty($email) OR empty($password) OR empty($passwordRepeat)) {
-                    array_push($errors,"Todos los campos son requeridos");
+                if (empty($usuario) or empty($email) or empty($password) or empty($passwordRepeat)) {
+                    array_push($errors, "Todos los campos son requeridos");
                 }
                 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                    array_push($errors,"Email introducido no es valido");
+                    array_push($errors, "Email introducido no es valido");
                 }
-                if (strlen($password)<8) {
-                    array_push($errors,"La contraseña debe de tener más de 8 caracteres");
+                if (strlen($password) < 8) {
+                    array_push($errors, "La contraseña debe de tener más de 8 caracteres");
                 }
-                if ($password!==$passwordRepeat) {
-                    array_push($errors,"Las contraseñas no coinciden");
+                if ($password !== $passwordRepeat) {
+                    array_push($errors, "Las contraseñas no coinciden");
                 }
 
 
@@ -45,32 +45,32 @@
                 $sql = "SELECT * FROM users WHERE email = '$email'";
                 $resultado = mysqli_query($conn, $sql);
                 $rowCount = mysqli_num_rows($resultado);
-                if ($rowCount>0) {
-                    array_push($errors,"Este correo ya esta siendo utilizado");
+                if ($rowCount > 0) {
+                    array_push($errors, "Este correo ya esta siendo utilizado");
                 }
 
 
 
 
-                if (count($errors)>0){
+                if (count($errors) > 0) {
                     foreach ($errors as $error) {
                         echo "<div>$error</div>";
                     }
-                }else{
+                } else {
                     //Agregamos la información en la base de datos
                     $sql = "INSERT INTO users (username, email, password) VALUES ( ?, ?, ?)";
                     $stmt = mysqli_stmt_init($conn);
                     $prepareStmt = mysqli_stmt_prepare($stmt, $sql);
                     if ($prepareStmt) {
-                        mysqli_stmt_bind_param($stmt,"sss", $usuario, $email, $passwordHash);
+                        mysqli_stmt_bind_param($stmt, "sss", $usuario, $email, $passwordHash);
                         mysqli_stmt_execute($stmt);
                         echo "<div>Se ha registrado satisfactoriamente</div>";
-                    }else{
+                    } else {
                         die("Revisa revisa");
                     }
                 }
             }
-        ?>
+?>
         <form action="../views/register_form.php" method="post">
             <div class="form-group">
                 <input type="text" name="username" placeholder="Nombre de Usuario" >

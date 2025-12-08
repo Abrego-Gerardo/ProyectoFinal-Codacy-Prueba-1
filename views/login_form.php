@@ -1,8 +1,8 @@
 <?php
-    session_start();
-    if (isset($_SESSION['user'])) {
-        header("Location: ../index.php");
-    }
+session_start();
+if (isset($_SESSION['user'])) {
+    header("Location: ../index.php");
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -15,7 +15,7 @@
 <body>
     <div class="login-container">
         <h1>Gestión de Usuarios</h1>
-        <?php 
+        <?php
             if (isset($_POST["login"])) {
                 $email = $_POST["email"];
                 $password = $_POST["password"];
@@ -25,28 +25,28 @@
                 $user = mysqli_fetch_array($result, MYSQLI_ASSOC);
                 if ($user) {
                     if (password_verify($password, $user["password"])) {
-                        if ($user["usertype"]=="usuario") {
+                        if ($user["usertype"] == "usuario") {
                             session_start();
                             $_SESSION["user"] = $user["username"];
                             $_SESSION["usertype"] = $user["usertype"];
                             header("Location: ../index.php");
-                            die(); 
-                        }else{
+                            die();
+                        } else {
                             session_start();
                             $_SESSION["user"] = $user["username"];
                             $_SESSION["usertype"] = $user["usertype"];
                             header("Location: ../views/administracion.php");
                             die();
                         }
-                        
-                    }else{
+
+                    } else {
                         echo "<div>El correo/contraseña fue incorrecto</div>";
                     }
-                }else{
+                } else {
                     echo "<div>No existe una cuenta asociada a ese correo</div>";
                 }
             }
-        ?>
+?>
         <form action="../views/login_form.php" method="post">
             <div class="form-group">
                 <input type="email" name="email" placeholder="Correo electrónico" required>
