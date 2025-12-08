@@ -38,14 +38,14 @@ if (isset($_SESSION['user'])) {
         if (isset($_POST["login"])) {
             // Validar token CSRF
             $csrf_token = filter_input(INPUT_POST, "csrf_token", FILTER_SANITIZE_STRING);
-            if (!$csrf_token || $csrf_token !== $_SESSION['csrf_token']) {
+            if ($csrf_token === false || $csrf_token !== $_SESSION['csrf_token']) {
                 echo "<div>Solicitud inválida (CSRF detectado)</div>";
             } else {
                 // Validar entradas
                 $email = filter_input(INPUT_POST, "email", FILTER_VALIDATE_EMAIL);
                 $password = filter_input(INPUT_POST, "password", FILTER_SANITIZE_STRING);
 
-                if ($email && $password) {
+                if ($email !== false && $password !== false) {
                     require_once __DIR__ . "/../database.php";
 
                     // Consulta segura con prepared statement
@@ -96,6 +96,7 @@ if (isset($_SESSION['user'])) {
     </div>
 </body>
 </html>
+
 
 
 
