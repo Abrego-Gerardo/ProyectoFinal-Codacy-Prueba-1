@@ -1,12 +1,26 @@
 <?php
 session_start();
+
+// Generar token CSRF si no existe
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
+// Función segura para redireccionar
+function safe_redirect(string $url): void {
+    $url = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
+    if (!headers_sent()) {
+        header("Location: $url");
+        exit();
+    } else {
+        echo "<script>window.location.href='$url';</script>";
+        exit();
+    }
+}
+
+// Redirigir si ya está autenticado
 if (isset($_SESSION['user'])) {
-    header("Location: ../index.php");
-    exit();
+    safe_redirect("../index.php");
 }
 ?>
 <!DOCTYPE html>
@@ -48,11 +62,9 @@ if (isset($_SESSION['user'])) {
                             $_SESSION["usertype"] = $user["usertype"];
 
                             if ($user["usertype"] === "usuario") {
-                                header("Location: ../index.php");
-                                exit();
+                                safe_redirect("../index.php");
                             } else {
-                                header("Location: ../views/administracion.php");
-                                exit();
+                                safe_redirect("../views/administracion.php");
                             }
                         } else {
                             print "<div>El correo/contraseña fue incorrecto</div>";
@@ -84,4 +96,5 @@ if (isset($_SESSION['user'])) {
     </div>
 </body>
 </html>
+
 
