@@ -44,7 +44,7 @@ $conn->close();
         } else {
             echo "<a href='login_form.php' style='color: white;'>Iniciar Sesión</a>";
         }
-?>
+        ?>
         </div>
     </div>
     <div class="nav">
@@ -58,20 +58,20 @@ $conn->close();
         <h1>Paquetes Disponibles</h1>
         <div class="destinos-container">
             <?php
-    if ($result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
-            echo "<form action='detalles_viaje.php' method='get'>";
-            echo "<input type='hidden' name='id' value='" . $row['id'] . "'>";
-            echo "<button type='submit' class='destino' style='background-image: url(" . $row['foto'] . ");'>";
-            echo "<h3>" . htmlspecialchars($row['city']) . "</h3>";
-            echo "<p>Precios: Niño $" . $row['precio_nino'] . ", Adulto $" . $row['precio_adulto'] . ", Mayor $" . $row['precio_mayor'] . "</p>";
-            echo "</button>";
-            echo "</form>";
-        }
-    } else {
-        echo "<p>No se encontraron paquetes con los filtros seleccionados.</p>";
-    }
-?>
+            if ($result->num_rows > 0) {
+                while ($row = $result->fetch_assoc()) {
+                    echo "<form action='detalles_viaje.php' method='get'>";
+                    echo "<input type='hidden' name='id' value='" . $row['id'] . "'>";
+                    echo "<button type='submit' class='destino' style='background-image: url(" . $row['foto'] . ");'>";
+                    echo "<h3>" . htmlspecialchars($row['city']) . "</h3>";
+                    echo "<p>Precios: Niño $" . $row['precio_nino'] . ", Adulto $" . $row['precio_adulto'] . ", Mayor $" . $row['precio_mayor'] . "</p>";
+                    echo "</button>";
+                    echo "</form>";
+                }
+            } else {
+                echo "<p>No se encontraron paquetes con los filtros seleccionados.</p>";
+            }
+            ?>
         </div>
     </div>
     <div class="footer">

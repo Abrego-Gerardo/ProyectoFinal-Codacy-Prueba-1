@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 echo "<a href='login_form.php' style='color: white;'>Iniciar Sesión</a>";
             }
-?>
+            ?>
         </div>
     </div>
 

@@ -16,37 +16,36 @@ if (isset($_SESSION['user'])) {
     <div class="login-container">
         <h1>Gestión de Usuarios</h1>
         <?php
-            if (isset($_POST["login"])) {
-                $email = $_POST["email"];
-                $password = $_POST["password"];
-                require_once "database.php";
-                $sql = "SELECT * FROM users WHERE email = '$email'";
-                $result = mysqli_query($conn, $sql);
-                $user = mysqli_fetch_array($result, MYSQLI_ASSOC);
-                if ($user) {
-                    if (password_verify($password, $user["password"])) {
-                        if ($user["usertype"] == "usuario") {
-                            session_start();
-                            $_SESSION["user"] = $user["username"];
-                            $_SESSION["usertype"] = $user["usertype"];
-                            header("Location: ../index.php");
-                            die();
-                        } else {
-                            session_start();
-                            $_SESSION["user"] = $user["username"];
-                            $_SESSION["usertype"] = $user["usertype"];
-                            header("Location: ../views/administracion.php");
-                            die();
-                        }
-
+        if (isset($_POST["login"])) {
+            $email = $_POST["email"];
+            $password = $_POST["password"];
+            require_once "database.php";
+            $sql = "SELECT * FROM users WHERE email = '$email'";
+            $result = mysqli_query($conn, $sql);
+            $user = mysqli_fetch_array($result, MYSQLI_ASSOC);
+            if ($user) {
+                if (password_verify($password, $user["password"])) {
+                    if ($user["usertype"] == "usuario") {
+                        session_start();
+                        $_SESSION["user"] = $user["username"];
+                        $_SESSION["usertype"] = $user["usertype"];
+                        header("Location: ../index.php");
+                        die();
                     } else {
-                        echo "<div>El correo/contraseña fue incorrecto</div>";
+                        session_start();
+                        $_SESSION["user"] = $user["username"];
+                        $_SESSION["usertype"] = $user["usertype"];
+                        header("Location: ../views/administracion.php");
+                        die();
                     }
                 } else {
-                    echo "<div>No existe una cuenta asociada a ese correo</div>";
+                    echo "<div>El correo/contraseña fue incorrecto</div>";
                 }
+            } else {
+                echo "<div>No existe una cuenta asociada a ese correo</div>";
             }
-?>
+        }
+        ?>
         <form action="../views/login_form.php" method="post">
             <div class="form-group">
                 <input type="email" name="email" placeholder="Correo electrónico" required>

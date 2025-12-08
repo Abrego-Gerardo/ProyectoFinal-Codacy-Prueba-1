@@ -33,13 +33,13 @@ $conn->close();
         <div class="right">
         <?php
             session_start();
-if (isset($_SESSION['user'])) {
-    echo "Usuario: " . htmlspecialchars($_SESSION['user']);
-    echo "<a href='logout.php'>Cerrar sesión</a>";
-} else {
-    echo "<a href='login_form.php' style='color: white;'>Iniciar Sesión</a>";
-}
-?>
+        if (isset($_SESSION['user'])) {
+            echo "Usuario: " . htmlspecialchars($_SESSION['user']);
+            echo "<a href='logout.php'>Cerrar sesión</a>";
+        } else {
+            echo "<a href='login_form.php' style='color: white;'>Iniciar Sesión</a>";
+        }
+        ?>
         </div>
     </div>
     <div class="nav">
@@ -51,7 +51,7 @@ if (isset($_SESSION['user'])) {
     </div>
     <div class="main-content">
         <h1>Detalles del Viaje</h1>
-        <?php if ($row): ?>
+        <?php if ($row) : ?>
             <div class='detalle-viaje'>
                 <img src='../<?php echo $row["foto"]; ?>' alt='<?php echo $row["city"]; ?>'>
                 <h2><?php echo $row["city"] . ", " . $row["pais"]; ?></h2>
@@ -65,7 +65,7 @@ if (isset($_SESSION['user'])) {
                     <button type="submit">Reservar</button>
                 </form>
             </div>
-        <?php else: ?>
+        <?php else : ?>
             <p>No se encontraron detalles para este viaje.</p>
         <?php endif; ?>
     </div>
