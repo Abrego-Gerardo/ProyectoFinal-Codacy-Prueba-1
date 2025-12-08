@@ -39,7 +39,7 @@ $conn->close();
         <div class="right">
         <?php
         if (isset($_SESSION['user'])) {
-            echo "Usuario: " . htmlspecialchars($_SESSION['user']);
+           echo "Usuario: " . htmlspecialchars($_SESSION['user'], ENT_QUOTES, 'UTF-8');
             echo "<a href='logout.php'>Cerrar sesión</a>";
         } else {
             echo "<a href='login_form.php' style='color: white;'>Iniciar Sesión</a>";
