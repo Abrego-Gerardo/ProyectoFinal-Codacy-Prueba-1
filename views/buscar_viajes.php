@@ -3,25 +3,32 @@
 session_start();
 $conn = new mysqli("localhost", "root", "", "agencia_db");
 if ($conn->connect_error) {
-    die("Conexión fallida: " . $conn->connect_error);
+    die("Conexión fallida: " . htmlspecialchars($conn->connect_error, ENT_QUOTES, 'UTF-8'));
 }
 
-// Obtener los filtros enviados desde el formulario
-$tipo_destino = $_POST['destino'];
-$precio_max = $_POST['precio'];
+// Generar nonce CSRF
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 
-// Filtrar destinos según los criterios
-$sql = "SELECT * FROM destinos WHERE tipo_destino = ? AND 
-        precio_nino <= ? AND 
-        precio_adulto <= ? AND 
-        precio_mayor <= ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("siii", $tipo_destino, $precio_max, $precio_max, $precio_max);
-$stmt->execute();
-$result = $stmt->get_result();
+// Obtener los filtros enviados desde el formulario de manera segura
+$tipo_destino = filter_input(INPUT_POST, 'destino', FILTER_SANITIZE_STRING);
+$precio_max   = filter_input(INPUT_POST, 'precio', FILTER_VALIDATE_INT);
 
-// Cerrar conexión al finalizar
-$stmt->close();
+$result = false;
+if ($tipo_destino && $precio_max !== false) {
+    // Filtrar destinos según los criterios
+    $sql = "SELECT * FROM destinos WHERE tipo_destino = ? AND 
+            precio_nino <= ? AND 
+            precio_adulto <= ? AND 
+            precio_mayor <= ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("siii", $tipo_destino, $precio_max, $precio_max, $precio_max);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $stmt->close();
+}
+
 $conn->close();
 ?>
 
@@ -38,11 +45,12 @@ $conn->close();
         <div class="left">Resultados de Búsqueda</div>
         <div class="right">
         <?php
-        if (isset($_SESSION['user'])) {
-           echo "Usuario: " . htmlspecialchars($_SESSION['user'], ENT_QUOTES, 'UTF-8');
-            echo "<a href='logout.php'>Cerrar sesión</a>";
+        if (isset($_SESSION['user']) && is_string($_SESSION['user'])) {
+            $usuario = htmlspecialchars($_SESSION['user'], ENT_QUOTES, 'UTF-8');
+            print "Usuario: {$usuario}";
+            print '<a href="logout.php">Cerrar sesión</a>';
         } else {
-            echo "<a href='login_form.php' style='color: white;'>Iniciar Sesión</a>";
+            print '<a href="login_form.php" style="color: white;">Iniciar Sesión</a>';
         }
         ?>
         </div>
@@ -58,18 +66,26 @@ $conn->close();
         <h1>Paquetes Disponibles</h1>
         <div class="destinos-container">
             <?php
-            if ($result->num_rows > 0) {
+            if ($result && $result->num_rows > 0) {
                 while ($row = $result->fetch_assoc()) {
-                    echo "<form action='detalles_viaje.php' method='get'>";
-                    echo "<input type='hidden' name='id' value='" . $row['id'] . "'>";
-                    echo "<button type='submit' class='destino' style='background-image: url(" . $row['foto'] . ");'>";
-                    echo "<h3>" . htmlspecialchars($row['city']) . "</h3>";
-                    echo "<p>Precios: Niño $" . $row['precio_nino'] . ", Adulto $" . $row['precio_adulto'] . ", Mayor $" . $row['precio_mayor'] . "</p>";
-                    echo "</button>";
-                    echo "</form>";
+                    $id           = (int)$row['id'];
+                    $foto         = htmlspecialchars($row['foto'], ENT_QUOTES, 'UTF-8');
+                    $city         = htmlspecialchars($row['city'], ENT_QUOTES, 'UTF-8');
+                    $precio_nino  = htmlspecialchars($row['precio_nino'], ENT_QUOTES, 'UTF-8');
+                    $precio_adulto= htmlspecialchars($row['precio_adulto'], ENT_QUOTES, 'UTF-8');
+                    $precio_mayor = htmlspecialchars($row['precio_mayor'], ENT_QUOTES, 'UTF-8');
+
+                    print "<form action='detalles_viaje.php' method='get'>";
+                    print "<input type='hidden' name='id' value='{$id}'>";
+                    print "<input type='hidden' name='csrf_token' value='" . htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8') . "'>";
+                    print "<button type='submit' class='destino' style='background-image: url({$foto});'>";
+                    print "<h3>{$city}</h3>";
+                    print "<p>Precios: Niño \${$precio_nino}, Adulto \${$precio_adulto}, Mayor \${$precio_mayor}</p>";
+                    print "</button>";
+                    print "</form>";
                 }
             } else {
-                echo "<p>No se encontraron paquetes con los filtros seleccionados.</p>";
+                print "<p>No se encontraron paquetes con los filtros seleccionados.</p>";
             }
             ?>
         </div>
@@ -79,4 +95,5 @@ $conn->close();
     </div>
 </body>
 </html>
+
 
