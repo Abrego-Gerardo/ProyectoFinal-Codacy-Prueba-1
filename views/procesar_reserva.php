@@ -94,7 +94,7 @@ if ($result->num_rows > 0) {
             <h2><?php echo $destino["city"] . ", " . $destino["pais"]; ?></h2>
             <p>Precio Niño: $<?php echo $destino["precio_nino"]; ?></p>
             <p>Precio Adulto: $<?php echo $destino["precio_adulto"]; ?></p>
-            <p>Precio Mayor: $<?php echo $destino["precio_mayor"]; ?></p>
+            <p>Precio Niño: $<?php echo htmlspecialchars($destino["precio_nino"], ENT_QUOTES, 'UTF-8'); ?></p>
 
             <!-- Precio total dinámico -->
             <p class="precio-final">Precio Total: $<span id="precio_total">0</span></p>
@@ -151,5 +151,6 @@ if ($result->num_rows > 0) {
     </script>
 </body>
 </html>
+
 
 
