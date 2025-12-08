@@ -72,7 +72,6 @@ if ($result->num_rows > 0) {
         <div class="right">
         <?php
         session_start();
-
         if (isset($_SESSION['user']) && is_string($_SESSION['user'])) {
         $usuario = htmlspecialchars($_SESSION['user'], ENT_QUOTES, 'UTF-8');
         echo "Usuario: " . $usuario;
@@ -154,6 +153,7 @@ if ($result->num_rows > 0) {
     </script>
 </body>
 </html>
+
 
 
 
