@@ -1,3 +1,11 @@
+<?php
+session_start();
+
+// Generar nonce CSRF
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -11,11 +19,11 @@
         <div class="left">Soporte y Contacto</div>
         <div class="right">
         <?php
-            session_start();
-        if (isset($_SESSION['username'])) {
-            echo "Usuario: " . htmlspecialchars($_SESSION['username']);
+        if (isset($_SESSION['username']) && is_string($_SESSION['username'])) {
+            $usuario = htmlspecialchars($_SESSION['username'], ENT_QUOTES, 'UTF-8');
+            print "Usuario: {$usuario}";
         } else {
-            echo "<a href='login_form.php' style='color: white;'>Iniciar Sesión</a>";
+            print '<a href="login_form.php" style="color: white;">Iniciar Sesión</a>';
         }
         ?>
         </div>
@@ -30,6 +38,7 @@
     <div class="main-content">
         <h1>Soporte y Contacto</h1>
         <form action="enviar_contacto.php" method="post">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>">
             <label for="busqueda">¿En qué te podemos ayudar?</label>
             <input type="text" id="busqueda" name="busqueda" placeholder="Escribe tu consulta aquí" required>
             <button type="submit">Buscar</button>
@@ -55,3 +64,4 @@
     </div>
 </body>
 </html>
+
