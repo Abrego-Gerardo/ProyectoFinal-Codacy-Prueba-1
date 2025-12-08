@@ -1,19 +1,30 @@
 <?php
-// Conexión a la base de datos
+// Iniciar sesión y conexión a la base de datos
+session_start();
 $conn = new mysqli("localhost", "root", "", "agencia_db");
 if ($conn->connect_error) {
-    die("Conexión fallida: " . $conn->connect_error);
+    die("Conexión fallida: " . htmlspecialchars($conn->connect_error, ENT_QUOTES, 'UTF-8'));
 }
 
-// Obtener detalles del viaje
-$id = $_GET['id'];
-$sql = "SELECT * FROM destinos WHERE id=$id";
-$result = $conn->query($sql);
+// Generar nonce CSRF
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 
-if ($result->num_rows > 0) {
-    $row = $result->fetch_assoc();
-} else {
-    $row = null;
+// Obtener detalles del viaje de manera segura
+$id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+
+$row = null;
+if ($id !== false && $id !== null) {
+    $stmt = $conn->prepare("SELECT * FROM destinos WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result && $result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+    }
+    $stmt->close();
 }
 
 $conn->close();
@@ -31,18 +42,15 @@ $conn->close();
     <div class="header">
         <div class="left">Detalles del Viaje</div>
         <div class="right">
-<?php
-session_start();
-
-if (isset($_SESSION['user']) && is_string($_SESSION['user'])) {
-    $usuario = htmlspecialchars($_SESSION['user'], ENT_QUOTES, 'UTF-8');
-    print "Usuario: {$usuario}";
-    print '<a href="logout.php">Cerrar sesión</a>';
-} else {
-    print '<a href="login_form.php" style="color: white;">Iniciar Sesión</a>';
-}
-?>
-
+        <?php
+        if (isset($_SESSION['user']) && is_string($_SESSION['user'])) {
+            $usuario = htmlspecialchars($_SESSION['user'], ENT_QUOTES, 'UTF-8');
+            print "Usuario: {$usuario}";
+            print '<a href="logout.php">Cerrar sesión</a>';
+        } else {
+            print '<a href="login_form.php" style="color: white;">Iniciar Sesión</a>';
+        }
+        ?>
         </div>
     </div>
     <div class="nav">
@@ -56,15 +64,26 @@ if (isset($_SESSION['user']) && is_string($_SESSION['user'])) {
         <h1>Detalles del Viaje</h1>
         <?php if ($row) : ?>
             <div class='detalle-viaje'>
-                <img src='../<?php echo $row["foto"]; ?>' alt='<?php echo $row["city"]; ?>'>
-                <h2><?php echo $row["city"] . ", " . $row["pais"]; ?></h2>
-                <p>Tipo de Destino: <?php echo $row["tipo_destino"]; ?></p>
-                <p>Precio Niño: $<?php echo htmlspecialchars($row["precio_nino"], ENT_QUOTES, 'UTF-8'); ?></p>
-                <p>Precio Adulto: $<?php echo $row["precio_adulto"]; ?></p>
-                <p>Precio Mayor: $<?php echo htmlspecialchars($row["precio_mayor"], ENT_QUOTES, 'UTF-8'); ?></p>
-                <p>Detalles: <?php echo isset($row["detalles"]) ? nl2br(htmlspecialchars($row["detalles"])) : "No hay detalles disponibles"; ?></p>
+                <?php
+                $foto        = htmlspecialchars($row["foto"], ENT_QUOTES, 'UTF-8');
+                $city        = htmlspecialchars($row["city"], ENT_QUOTES, 'UTF-8');
+                $pais        = htmlspecialchars($row["pais"], ENT_QUOTES, 'UTF-8');
+                $tipo_destino= htmlspecialchars($row["tipo_destino"], ENT_QUOTES, 'UTF-8');
+                $precio_nino = htmlspecialchars($row["precio_nino"], ENT_QUOTES, 'UTF-8');
+                $precio_adulto = htmlspecialchars($row["precio_adulto"], ENT_QUOTES, 'UTF-8');
+                $precio_mayor  = htmlspecialchars($row["precio_mayor"], ENT_QUOTES, 'UTF-8');
+                $detalles    = isset($row["detalles"]) ? nl2br(htmlspecialchars($row["detalles"], ENT_QUOTES, 'UTF-8')) : "No hay detalles disponibles";
+                ?>
+                <img src='../<?php print $foto; ?>' alt='<?php print $city; ?>'>
+                <h2><?php print "{$city}, {$pais}"; ?></h2>
+                <p>Tipo de Destino: <?php print $tipo_destino; ?></p>
+                <p>Precio Niño: $<?php print $precio_nino; ?></p>
+                <p>Precio Adulto: $<?php print $precio_adulto; ?></p>
+                <p>Precio Mayor: $<?php print $precio_mayor; ?></p>
+                <p>Detalles: <?php print $detalles; ?></p>
                 <form action="procesar_reserva.php" method="post">
-                    <input type="hidden" name="id_viaje" value="<?php echo $row['id']; ?>">
+                    <input type="hidden" name="id_viaje" value="<?php print (int)$row['id']; ?>">
+                    <input type="hidden" name="csrf_token" value="<?php print htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>">
                     <button type="submit">Reservar</button>
                 </form>
             </div>
@@ -77,4 +96,5 @@ if (isset($_SESSION['user']) && is_string($_SESSION['user'])) {
     </div>
 </body>
 </html>
+
 
