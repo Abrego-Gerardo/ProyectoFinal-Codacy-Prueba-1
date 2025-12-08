@@ -1,3 +1,11 @@
+<?php
+session_start();
+
+// Generar nonce CSRF
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -11,12 +19,12 @@
         <div class="left">Confirmar Reserva</div>
         <div class="right">
         <?php
-            session_start();
-        if (isset($_SESSION['user'])) {
-            echo "Usuario: " . htmlspecialchars($_SESSION['user']);
-            echo "<a href='logout.php'>Cerrar sesión</a>";
+        if (isset($_SESSION['user']) && is_string($_SESSION['user'])) {
+            $usuario = htmlspecialchars($_SESSION['user'], ENT_QUOTES, 'UTF-8');
+            print "Usuario: {$usuario}";
+            print '<a href="logout.php">Cerrar sesión</a>';
         } else {
-            echo "<a href='login_form.php' style='color: white;'>Iniciar Sesión</a>";
+            print '<a href="login_form.php" style="color: white;">Iniciar Sesión</a>';
         }
         ?>
         </div>
@@ -31,6 +39,7 @@
     <div class="main-content">
         <h1>Confirmar Reserva</h1>
         <form action="procesar_reserva.php" method="post">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>">
             <label for="email">Ingrese su correo para confirmar su reserva:</label>
             <input type="email" id="email" name="email" placeholder="Correo electrónico" required>
             <button type="submit">Confirmar Reserva</button>
@@ -41,6 +50,7 @@
     </div>
 </body>
 </html>
+
 
 
 
