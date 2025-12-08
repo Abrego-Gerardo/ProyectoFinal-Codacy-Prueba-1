@@ -31,15 +31,18 @@ $conn->close();
     <div class="header">
         <div class="left">Detalles del Viaje</div>
         <div class="right">
-        <?php
-            session_start();
-        if (isset($_SESSION['user'])) {
-            echo "Usuario: " . htmlspecialchars($_SESSION['user']);
-            echo "<a href='logout.php'>Cerrar sesión</a>";
-        } else {
-            echo "<a href='login_form.php' style='color: white;'>Iniciar Sesión</a>";
-        }
-        ?>
+<?php
+session_start();
+
+if (isset($_SESSION['user']) && is_string($_SESSION['user'])) {
+    $usuario = htmlspecialchars($_SESSION['user'], ENT_QUOTES, 'UTF-8');
+    print "Usuario: {$usuario}";
+    print '<a href="logout.php">Cerrar sesión</a>';
+} else {
+    print '<a href="login_form.php" style="color: white;">Iniciar Sesión</a>';
+}
+?>
+
         </div>
     </div>
     <div class="nav">
