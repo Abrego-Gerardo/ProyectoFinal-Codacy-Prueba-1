@@ -1,11 +1,6 @@
 Integrantes del Proyecto Final
 
-Gerardo Abrego 
-Manuel Alvarado
+Gerardo Abrego 8-985-378
+Maanuel Alvarado
 Arquimedes Garcia
 Dennis Zhong
-
----
-
-**Estado de análisis Codacy:** Reanalisis en progreso con correcciones aplicadas mediante php-cs-fixer y phpcbf.
-

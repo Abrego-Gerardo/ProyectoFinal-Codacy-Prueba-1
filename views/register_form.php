@@ -1,15 +1,8 @@
 <?php
-session_start();
-
-// Generar nonce CSRF
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
-
-if (isset($_SESSION['user'])) {
-    header("Location: ../index.php");
-    exit();
-}
+    session_start();
+    if (isset($_SESSION['user'])) {
+        header("Location: ../index.php");
+    }
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -24,79 +17,72 @@ if (isset($_SESSION['user'])) {
         <h1>Gestión de Usuarios</h1>
 
         <?php
-        if (isset($_POST["submit"])) {
-            // Validar token CSRF
-            $csrf_token = filter_input(INPUT_POST, "csrf_token", FILTER_SANITIZE_STRING);
-            if (!$csrf_token || $csrf_token !== $_SESSION['csrf_token']) {
-                echo "<div>Solicitud inválida (CSRF detectado)</div>";
-            } else {
-                // Validar entradas
-                $usuario        = filter_input(INPUT_POST, "username", FILTER_SANITIZE_STRING);
-                $email          = filter_input(INPUT_POST, "email", FILTER_VALIDATE_EMAIL);
-                $password       = filter_input(INPUT_POST, "password", FILTER_SANITIZE_STRING);
-                $passwordRepeat = filter_input(INPUT_POST, "confirm_password", FILTER_SANITIZE_STRING);
+            if (isset($_POST["submit"])) {
+                $usuario = $_POST["username"];
+                $email = $_POST["email"];
+                $password = $_POST["password"];
+                $passwordRepeat = $_POST["confirm_password"];
 
-                $errors = [];
+                $passwordHash = password_hash($password, PASSWORD_DEFAULT);
 
-                if (empty($usuario) || empty($email) || empty($password) || empty($passwordRepeat)) {
-                    $errors[] = "Todos los campos son requeridos";
+                $errors = array();
+
+                if (empty($usuario) OR empty($email) OR empty($password) OR empty($passwordRepeat)) {
+                    array_push($errors,"Todos los campos son requeridos");
                 }
-                if (!$email) {
-                    $errors[] = "Email introducido no es válido";
+                if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    array_push($errors,"Email introducido no es valido");
                 }
-                if (strlen($password) < 8) {
-                    $errors[] = "La contraseña debe tener más de 8 caracteres";
+                if (strlen($password)<8) {
+                    array_push($errors,"La contraseña debe de tener más de 8 caracteres");
                 }
-                if ($password !== $passwordRepeat) {
-                    $errors[] = "Las contraseñas no coinciden";
+                if ($password!==$passwordRepeat) {
+                    array_push($errors,"Las contraseñas no coinciden");
                 }
 
-                require_once __DIR__ . "/../database.php";
 
-                // Consulta segura para verificar si el correo ya existe
-                $stmt = $mysqli->prepare("SELECT id FROM users WHERE email = ?");
-                $stmt->bind_param("s", $email);
-                $stmt->execute();
-                $stmt->store_result();
-                if ($stmt->num_rows > 0) {
-                    $errors[] = "Este correo ya está siendo utilizado";
+                require_once "database.php";
+                $sql = "SELECT * FROM users WHERE email = '$email'";
+                $resultado = mysqli_query($conn, $sql);
+                $rowCount = mysqli_num_rows($resultado);
+                if ($rowCount>0) {
+                    array_push($errors,"Este correo ya esta siendo utilizado");
                 }
-                $stmt->close();
 
-                if (count($errors) > 0) {
+
+
+
+                if (count($errors)>0){
                     foreach ($errors as $error) {
-                        echo "<div>" . htmlspecialchars($error, ENT_QUOTES, 'UTF-8') . "</div>";
+                        echo "<div>$error</div>";
                     }
-                } else {
-                    // Insertar usuario con prepared statement
-                    $passwordHash = password_hash($password, PASSWORD_DEFAULT);
-                    $stmt = $mysqli->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
-                    if ($stmt) {
-                        $stmt->bind_param("sss", $usuario, $email, $passwordHash);
-                        $stmt->execute();
+                }else{
+                    //Agregamos la información en la base de datos
+                    $sql = "INSERT INTO users (username, email, password) VALUES ( ?, ?, ?)";
+                    $stmt = mysqli_stmt_init($conn);
+                    $prepareStmt = mysqli_stmt_prepare($stmt, $sql);
+                    if ($prepareStmt) {
+                        mysqli_stmt_bind_param($stmt,"sss", $usuario, $email, $passwordHash);
+                        mysqli_stmt_execute($stmt);
                         echo "<div>Se ha registrado satisfactoriamente</div>";
-                        $stmt->close();
-                    } else {
-                        echo "<div>Error al preparar la consulta.</div>";
-                        exit();
+                    }else{
+                        die("Revisa revisa");
                     }
                 }
             }
-        }
         ?>
         <form action="../views/register_form.php" method="post">
-            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>">
             <div class="form-group">
-                <input type="text" name="username" placeholder="Nombre de Usuario" required>
+                <input type="text" name="username" placeholder="Nombre de Usuario" >
             </div>
             <div class="form-group">
-                <input type="email" name="email" placeholder="Correo Electrónico" required>
+                <input type="email" name="email" placeholder="Correo Electrónico" >
             </div>
             <div class="form-group">
-                <input type="password" name="password" placeholder="Ingresar Contraseña" required>
+                <input type="password" name="password" placeholder="Ingresar Contraseña" >
             </div>
             <div class="form-group">
-                <input type="password" name="confirm_password" placeholder="Confirmar Contraseña" required>
+                <input type="password" name="confirm_password" placeholder="Confirmar Contraseña" >
             </div>
             <div class="form-btn">
                 <button type="submit" value="Register" name="submit">Registrarse</button>
@@ -107,3 +93,4 @@ if (isset($_SESSION['user'])) {
     </div>
 </body>
 </html>
+

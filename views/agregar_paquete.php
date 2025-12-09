@@ -4,75 +4,59 @@ session_start();
 // Conexión a la base de datos
 $conn = new mysqli("localhost", "root", "", "agencia_db");
 if ($conn->connect_error) {
-    die("Conexión fallida: " . htmlspecialchars($conn->connect_error, ENT_QUOTES, 'UTF-8'));
-}
-
-// Generar nonce CSRF
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    die("Conexión fallida: " . $conn->connect_error);
 }
 
 $mensaje = ""; // Variable para almacenar mensajes
 
 // Procesar la creación del nuevo paquete
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Validar token CSRF
-    $csrf_token = filter_input(INPUT_POST, 'csrf_token', FILTER_SANITIZE_STRING);
-    if (!$csrf_token || $csrf_token !== $_SESSION['csrf_token']) {
-        die("Solicitud inválida (CSRF detectado).");
-    }
+    $nombre = $_POST['nombre'];
+    $tipo_destino = $_POST['tipo_destino'];
+    $precio_nino = $_POST['precio_nino'];
+    $precio_adulto = $_POST['precio_adulto'];
+    $precio_mayor = $_POST['precio_mayor'];
+    $detalles = $_POST['detalles'];
+    $foto = $_FILES['foto']['name'];
 
-    // Validar entradas
-    $nombre        = filter_input(INPUT_POST, 'nombre', FILTER_SANITIZE_STRING);
-    $tipo_destino  = filter_input(INPUT_POST, 'tipo_destino', FILTER_SANITIZE_STRING);
-    $precio_nino   = filter_input(INPUT_POST, 'precio_nino', FILTER_VALIDATE_FLOAT);
-    $precio_adulto = filter_input(INPUT_POST, 'precio_adulto', FILTER_VALIDATE_FLOAT);
-    $precio_mayor  = filter_input(INPUT_POST, 'precio_mayor', FILTER_VALIDATE_FLOAT);
-    $detalles      = filter_input(INPUT_POST, 'detalles', FILTER_SANITIZE_STRING) ?? '';
+    $target_dir = "../uploads/";
+    $target_file = $target_dir . basename($foto);
+    $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
 
-    if ($nombre && $tipo_destino && $precio_nino !== false && $precio_adulto !== false && $precio_mayor !== false) {
-        if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
-            $foto = basename($_FILES['foto']['name']);
-            $target_dir = "../uploads/";
-            $target_file = $target_dir . $foto;
-            $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
+    // Verificar si el archivo es una imagen
+    $check = getimagesize($_FILES['foto']['tmp_name']);
+    if ($check !== false) {
 
-            // Verificar si el archivo es una imagen
-            $check = getimagesize($_FILES['foto']['tmp_name']);
-            if ($check !== false) {
-                // Permitir solo ciertos formatos
-                $allowed_types = ['jpg', 'jpeg', 'png', 'gif'];
-                if (in_array($imageFileType, $allowed_types, true)) {
-                    if (!file_exists($target_dir)) {
-                        mkdir($target_dir, 0777, true);
-                    }
+        // Permitir solo ciertos formatos
+        $allowed_types = array('jpg', 'jpeg', 'png', 'gif');
+        if (in_array($imageFileType, $allowed_types)) {
 
-                    if (move_uploaded_file($_FILES['foto']['tmp_name'], $target_file)) {
-                        // Consulta segura con prepared statement
-                        $stmt = $conn->prepare("INSERT INTO destinos (city, tipo_destino, precio_nino, precio_adulto, precio_mayor, detalles, foto) 
-                                                VALUES (?, ?, ?, ?, ?, ?, ?)");
-                        $stmt->bind_param("ssddsss", $nombre, $tipo_destino, $precio_nino, $precio_adulto, $precio_mayor, $detalles, $target_file);
-
-                        if ($stmt->execute()) {
-                            $mensaje = "Paquete creado correctamente.";
-                        } else {
-                            $mensaje = "Error al crear el paquete: " . htmlspecialchars($conn->error, ENT_QUOTES, 'UTF-8');
-                        }
-                        $stmt->close();
-                    } else {
-                        $mensaje = "Error al subir la imagen.";
-                    }
-                } else {
-                    $mensaje = "Solo se permiten archivos JPG, JPEG, PNG y GIF.";
-                }
-            } else {
-                $mensaje = "El archivo no es una imagen.";
+            // Verificar directorio
+            if (!file_exists($target_dir)) {
+                mkdir($target_dir, 0777, true);
             }
+
+            if (move_uploaded_file($_FILES['foto']['tmp_name'], $target_file)) {
+
+                $sql = "INSERT INTO destinos (city, tipo_destino, precio_nino, precio_adulto, precio_mayor, detalles, foto) 
+                        VALUES ('$nombre', '$tipo_destino', '$precio_nino', '$precio_adulto', '$precio_mayor', '$detalles', '$target_file')";
+
+                if ($conn->query($sql) === TRUE) {
+                    $mensaje = "Paquete creado correctamente.";
+                } else {
+                    $mensaje = "Error al crear el paquete: " . $conn->error;
+                }
+
+            } else {
+                $mensaje = "Error al subir la imagen.";
+            }
+
         } else {
-            $mensaje = "No se subió ninguna imagen válida.";
+            $mensaje = "Solo se permiten archivos JPG, JPEG, PNG y GIF.";
         }
+
     } else {
-        $mensaje = "Datos inválidos en el formulario.";
+        $mensaje = "El archivo no es una imagen.";
     }
 
     $conn->close();
@@ -86,6 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agregar Paquete - Agencia de Viajes</title>
     <link rel="stylesheet" href="../public/assets/css/style.css">
+
     <style>
         .alert {
             background: #ffd966;
@@ -102,13 +87,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="left">Agregar Paquete</div>
         <div class="right">
             <?php
-            if (isset($_SESSION['user']) && is_string($_SESSION['user'])) {
-                $usuario = htmlspecialchars($_SESSION['user'], ENT_QUOTES, 'UTF-8');
-                print "Usuario: {$usuario}";
-                print '<a href="logout.php">Cerrar sesión</a>';
-            } else {
-                print '<a href="login_form.php" style="color: white;">Iniciar Sesión</a>';
-            }
+                if (isset($_SESSION['user'])) {
+                    echo "Usuario: " . htmlspecialchars($_SESSION['user']);
+                    echo "<a href='logout.php'>Cerrar sesión</a>";
+                } else {
+                    echo "<a href='login_form.php' style='color: white;'>Iniciar Sesión</a>";
+                }
             ?>
         </div>
     </div>
@@ -124,15 +108,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="main-content">
         <h1>Agregar Detalles del Paquete</h1>
 
-        <?php if (!empty($mensaje)) : ?>
+        <!-- Mostrar mensaje sin usar echo en el proceso PHP -->
+        <?php if (!empty($mensaje)): ?>
             <div class="alert">
-                <?= htmlspecialchars($mensaje, ENT_QUOTES, 'UTF-8'); ?>
+                <?= htmlspecialchars($mensaje); ?>
             </div>
         <?php endif; ?>
 
         <form action="agregar_paquete.php" method="post" enctype="multipart/form-data">
-            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>">
-
             <label for="nombre">Nombre del Paquete:</label>
             <input type="text" id="nombre" name="nombre" placeholder="Nombre del Paquete" required>
 
@@ -166,4 +149,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 </body>
 </html>
-

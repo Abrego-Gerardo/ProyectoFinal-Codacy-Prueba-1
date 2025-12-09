@@ -1,49 +1,82 @@
 <?php
+// Start session at the beginning
 session_start();
 
-// Verificación de acceso (admin)
-if (!isset($_SESSION['usertype']) || $_SESSION['usertype'] !== 'admin') {
-    header("Location: login_form.php");
-    exit();
+// Conexión a la base de datos
+// Allow injection of $conn for testing purposes
+if (!isset($conn)) {
+    $conn = new mysqli("localhost", "root", "", "agencia_db");
+}
+if ($conn->connect_error) {
+    die("Conexión fallida: " . htmlspecialchars($conn->connect_error));
 }
 
-// Conexión a la base de datos
-$conn = new mysqli("localhost", "root", "", "agencia_db");
-if ($conn->connect_error) {
-    exit("Conexión fallida: " . htmlspecialchars($conn->connect_error, ENT_QUOTES, 'UTF-8'));
+// Generate CSRF token if not exists
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
 // Procesar acciones
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = filter_input(INPUT_POST, 'action', FILTER_SANITIZE_STRING);
+    // Validate CSRF token
+    if (empty($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        die("Error: Token CSRF inválido");
+    }
 
-    if ($action === 'edit') {
-        // Procesar Edición
-        $id            = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
-        $nombre        = filter_input(INPUT_POST, 'nombre', FILTER_SANITIZE_STRING);
-        $tipo_destino  = filter_input(INPUT_POST, 'tipo_destino', FILTER_SANITIZE_STRING);
-        $precio_nino   = filter_input(INPUT_POST, 'precio_nino', FILTER_VALIDATE_FLOAT);
-        $precio_adulto = filter_input(INPUT_POST, 'precio_adulto', FILTER_VALIDATE_FLOAT);
-        $precio_mayor  = filter_input(INPUT_POST, 'precio_mayor', FILTER_VALIDATE_FLOAT);
-        $detalles      = filter_input(INPUT_POST, 'detalles', FILTER_SANITIZE_STRING) ?? '';
+    if (isset($_POST['action']) && $_POST['action'] === 'edit') {
+        // Procesar Edición - Validate and sanitize inputs
+        $id = filter_var($_POST['id'], FILTER_VALIDATE_INT);
+        if ($id === false) {
+            die("Error: ID inválido");
+        }
 
-        if ($id !== false) {
-            $stmt = $conn->prepare("UPDATE destinos 
-                SET city = ?, tipo_destino = ?, precio_nino = ?, precio_adulto = ?, precio_mayor = ?, detalles = ? 
-                WHERE id = ?");
-            $stmt->bind_param("ssdddis", $nombre, $tipo_destino, $precio_nino, $precio_adulto, $precio_mayor, $detalles, $id);
-            $stmt->execute();
-            $stmt->close();
+        $nombre = trim($_POST['nombre'] ?? '');
+        $tipo_destino = trim($_POST['tipo_destino'] ?? '');
+        $precio_nino = filter_var($_POST['precio_nino'], FILTER_VALIDATE_FLOAT);
+        $precio_adulto = filter_var($_POST['precio_adulto'], FILTER_VALIDATE_FLOAT);
+        $precio_mayor = filter_var($_POST['precio_mayor'], FILTER_VALIDATE_FLOAT);
+        $detalles = trim($_POST['detalles'] ?? '');
+
+        // Validate required fields
+        if (empty($nombre) || empty($tipo_destino) || $precio_nino === false || $precio_adulto === false || $precio_mayor === false) {
+            die("Error: Campos requeridos inválidos");
         }
-    } elseif ($action === 'delete') {
-        // Procesar Eliminación
-        $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
-        if ($id !== false) {
-            $stmt = $conn->prepare("DELETE FROM destinos WHERE id = ?");
-            $stmt->bind_param("i", $id);
-            $stmt->execute();
-            $stmt->close();
+
+        // Validate tipo_destino is one of allowed values
+        if (!in_array($tipo_destino, ['Nacional', 'Internacional'], true)) {
+            die("Error: Tipo de destino inválido");
         }
+
+        // Use prepared statement to prevent SQL injection
+        $sql = "UPDATE destinos SET city=?, tipo_destino=?, precio_nino=?, precio_adulto=?, precio_mayor=?, detalles=? WHERE id=?";
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            die("Error: " . htmlspecialchars($conn->error));
+        }
+        $stmt->bind_param("ssdddsi", $nombre, $tipo_destino, $precio_nino, $precio_adulto, $precio_mayor, $detalles, $id);
+        if (!$stmt->execute()) {
+            die("Error al actualizar: " . htmlspecialchars($stmt->error));
+        }
+        $stmt->close();
+
+    } elseif (isset($_POST['action']) && $_POST['action'] === 'delete') {
+        // Procesar Eliminación - Validate input
+        $id = filter_var($_POST['id'], FILTER_VALIDATE_INT);
+        if ($id === false) {
+            die("Error: ID inválido");
+        }
+
+        // Use prepared statement to prevent SQL injection
+        $sql = "DELETE FROM destinos WHERE id=?";
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            die("Error: " . htmlspecialchars($conn->error));
+        }
+        $stmt->bind_param("i", $id);
+        if (!$stmt->execute()) {
+            die("Error al eliminar: " . htmlspecialchars($stmt->error));
+        }
+        $stmt->close();
     }
 }
 
@@ -51,9 +84,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $sql = "SELECT * FROM destinos";
 $result = $conn->query($sql);
 
-// Nota: mantenemos la conexión abierta hasta terminar el render para evitar perder $result.
-// Se cerrará al final del documento.
+$conn->close();
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -67,10 +100,14 @@ $result = $conn->query($sql);
         <div class="left">Administración de Paquetes</div>
         <div class="right">
             <?php
-            if (isset($_SESSION['user']) && is_string($_SESSION['user'])) {
-                $usuario = htmlspecialchars($_SESSION['user'], ENT_QUOTES, 'UTF-8');
-                echo "Usuario: {$usuario}";
-                echo '<a href="logout.php">Cerrar sesión</a>';
+            // Check user authentication and authorization
+            if (!isset($_SESSION['usertype']) || $_SESSION['usertype'] !== 'admin') {
+                header("Location: login_form.php");
+                exit();
+            }
+            if (isset($_SESSION['user'])) {
+                echo "Usuario: " . htmlspecialchars($_SESSION['user'], ENT_QUOTES, 'UTF-8');
+                echo " <a href='logout.php'>Cerrar sesión</a>";
             }
             ?>
         </div>
@@ -96,70 +133,57 @@ $result = $conn->query($sql);
             <h2>Modificar Paquetes</h2>
             <div class="paquetes">
                 <?php
-                if ($result && $result->num_rows > 0) {
-                    while ($row = $result->fetch_assoc()) {
-                        $detalles = $row['detalles'] ?? '';
-                        echo "<div class='paquete'>";
-                        echo "<form action='administracion.php' method='post'>";
-                        printf("<input type='hidden' name='id' value='%d'>", (int)$row['id']);
-                        echo "<input type='hidden' name='action' value='edit'>";
-                        printf("<label for='nombre_%d'>Nombre:</label>", (int)$row['id']);
-                        printf(
-                            "<input type='text' id='nombre_%d' name='nombre' value='%s' required>",
-                            (int)$row['id'],
-                            htmlspecialchars($row['city'], ENT_QUOTES, 'UTF-8')
-                        );
-                        printf("<label for='tipo_destino_%d'>Tipo de Destino:</label>", (int)$row['id']);
-                        printf("<select id='tipo_destino_%d' name='tipo_destino' required>", (int)$row['id']);
-                        echo "<option value='Nacional' " . ($row['tipo_destino'] === 'Nacional' ? 'selected' : '') . ">Nacional</option>";
-                        echo "<option value='Internacional' " . ($row['tipo_destino'] === 'Internacional' ? 'selected' : '') . ">Internacional</option>";
-                        echo "</select>";
-                        printf("<label for='precio_nino_%d'>Precio Niño:</label>", (int)$row['id']);
-                        printf(
-                            "<input type='number' id='precio_nino_%d' name='precio_nino' value='%s' required>",
-                            (int)$row['id'],
-                            htmlspecialchars($row['precio_nino'], ENT_QUOTES, 'UTF-8')
-                        );
-                        printf("<label for='precio_adulto_%d'>Precio Adulto:</label>", (int)$row['id']);
-                        printf(
-                            "<input type='number' id='precio_adulto_%d' name='precio_adulto' value='%s' required>",
-                            (int)$row['id'],
-                            htmlspecialchars($row['precio_adulto'], ENT_QUOTES, 'UTF-8')
-                        );
-                        printf("<label for='precio_mayor_%d'>Precio Mayor:</label>", (int)$row['id']);
-                        printf(
-                            "<input type='number' id='precio_mayor_%d' name='precio_mayor' value='%s' required>",
-                            (int)$row['id'],
-                            htmlspecialchars($row['precio_mayor'], ENT_QUOTES, 'UTF-8')
-                        );
-                        printf("<label for='detalles_%d'>Detalles:</label>", (int)$row['id']);
-                        printf(
-                            "<textarea id='detalles_%d' name='detalles' required>%s</textarea>",
-                            (int)$row['id'],
-                            htmlspecialchars($detalles, ENT_QUOTES, 'UTF-8')
-                        );
-                        echo "<button type='submit'>Guardar Cambios</button>";
-                        echo "</form>";
-
-                        echo "<form action='administracion.php' method='post' style='display:inline;'>";
-                        printf("<input type='hidden' name='id' value='%d'>", (int)$row['id']);
-                        echo "<input type='hidden' name='action' value='delete'>";
-                        echo "<button type='submit'>Eliminar</button>";
-                        echo "</form>";
-
-                        echo "</div>";
+                if ($result->num_rows > 0) {
+                    while($row = $result->fetch_assoc()) {
+                        // Sanitize all output to prevent XSS
+                        $id_safe = htmlspecialchars($row['id'], ENT_QUOTES, 'UTF-8');
+                        $city_safe = htmlspecialchars($row['city'], ENT_QUOTES, 'UTF-8');
+                        $tipo_destino_safe = htmlspecialchars($row['tipo_destino'], ENT_QUOTES, 'UTF-8');
+                        $precio_nino_safe = htmlspecialchars($row['precio_nino'], ENT_QUOTES, 'UTF-8');
+                        $precio_adulto_safe = htmlspecialchars($row['precio_adulto'], ENT_QUOTES, 'UTF-8');
+                        $precio_mayor_safe = htmlspecialchars($row['precio_mayor'], ENT_QUOTES, 'UTF-8');
+                        $detalles_safe = htmlspecialchars($row['detalles'] ?? '', ENT_QUOTES, 'UTF-8');
+                        ?>
+                        <div class='paquete'>
+                            <form action='administracion.php' method='post'>
+                                <input type='hidden' name='csrf_token' value='<?php echo $_SESSION['csrf_token']; ?>'>
+                                <input type='hidden' name='id' value='<?php echo $id_safe; ?>'>
+                                <input type='hidden' name='action' value='edit'>
+                                <label for='nombre_<?php echo $id_safe; ?>'>Nombre:</label>
+                                <input type='text' id='nombre_<?php echo $id_safe; ?>' name='nombre' value='<?php echo $city_safe; ?>' required>
+                                <label for='tipo_destino_<?php echo $id_safe; ?>'>Tipo de Destino:</label>
+                                <select id='tipo_destino_<?php echo $id_safe; ?>' name='tipo_destino' required>
+                                    <option value='Nacional' <?php echo $tipo_destino_safe === 'Nacional' ? 'selected' : ''; ?>>Nacional</option>
+                                    <option value='Internacional' <?php echo $tipo_destino_safe === 'Internacional' ? 'selected' : ''; ?>>Internacional</option>
+                                </select>
+                                <label for='precio_nino_<?php echo $id_safe; ?>'>Precio Niño:</label>
+                                <input type='number' id='precio_nino_<?php echo $id_safe; ?>' name='precio_nino' value='<?php echo $precio_nino_safe; ?>' step='0.01' required>
+                                <label for='precio_adulto_<?php echo $id_safe; ?>'>Precio Adulto:</label>
+                                <input type='number' id='precio_adulto_<?php echo $id_safe; ?>' name='precio_adulto' value='<?php echo $precio_adulto_safe; ?>' step='0.01' required>
+                                <label for='precio_mayor_<?php echo $id_safe; ?>'>Precio Mayor:</label>
+                                <input type='number' id='precio_mayor_<?php echo $id_safe; ?>' name='precio_mayor' value='<?php echo $precio_mayor_safe; ?>' step='0.01' required>
+                                <label for='detalles_<?php echo $id_safe; ?>'>Detalles:</label>
+                                <textarea id='detalles_<?php echo $id_safe; ?>' name='detalles' required><?php echo $detalles_safe; ?></textarea>
+                                <button type='submit'>Guardar Cambios</button>
+                            </form>
+                            <form action='administracion.php' method='post' style='display:inline;' onsubmit='return confirm("¿Está seguro de que desea eliminar este paquete?");'>
+                                <input type='hidden' name='csrf_token' value='<?php echo $_SESSION['csrf_token']; ?>'>
+                                <input type='hidden' name='id' value='<?php echo $id_safe; ?>'>
+                                <input type='hidden' name='action' value='delete'>
+                                <button type='submit' style='background-color: #ff4444;'>Eliminar</button>
+                            </form>
+                        </div>
+                        <?php
                     }
                 } else {
-                    echo "No hay paquetes disponibles.";
+                    echo "<p>No hay paquetes disponibles.</p>";
                 }
                 ?>
             </div>
         </div>
     </div>
+    <div class="footer">
+        <p>&copy; 2023 Agencia de Viajes. Todos los derechos reservados.</p>
+    </div>
 </body>
 </html>
-<?php
-// Cerrar la conexión al final
-$conn->close();
-?>
-
