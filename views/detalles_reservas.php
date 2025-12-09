@@ -21,10 +21,10 @@ if (empty($_SESSION['csrf_token'])) {
         <?php
         if (isset($_SESSION['user']) && is_string($_SESSION['user'])) {
             $usuario = htmlspecialchars($_SESSION['user'], ENT_QUOTES, 'UTF-8');
-            print "Usuario: {$usuario}";
-            print '<a href="logout.php">Cerrar sesión</a>';
+            echo "Usuario: {$usuario}";
+            echo ' <a href="logout.php">Cerrar sesión</a>';
         } else {
-            print '<a href="login_form.php" style="color: white;">Iniciar Sesión</a>';
+            echo '<a href="login_form.php" style="color: white;">Iniciar Sesión</a>';
         }
         ?>
         </div>
@@ -41,7 +41,7 @@ if (empty($_SESSION['csrf_token'])) {
         <div class="contenido-blanco">
             <!-- Aquí se agregarán los detalles específicos de las reservas del usuario -->
             <!-- Ejemplo futuro: incluir token CSRF en formularios -->
-            <!-- <input type="hidden" name="csrf_token" value="<?php print htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>"> -->
+            <!-- <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>"> -->
         </div>
     </div>
     <div class="footer">
@@ -49,3 +49,4 @@ if (empty($_SESSION['csrf_token'])) {
     </div>
 </body>
 </html>
+
