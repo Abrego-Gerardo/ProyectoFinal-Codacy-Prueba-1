@@ -1,0 +1,308 @@
+body {
+    font-family: Inter, sans-serif;
+    background-color: #f7f7f7;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+.header, .footer {
+    background-color: #076eff;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+}
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.header .left, .header .right {
+    display: flex;
+    align-items: center;
+}
+.header .left {
+    font-size: 1.5em;
+}
+.nav {
+    display: flex;
+    justify-content:flex-start;
+    background-color: white;
+    padding: 10px;
+}
+.nav a {
+    margin: 0 15px;
+    text-decoration: none;
+    color: #076eff;
+    font-size: 1.2em;
+}
+.nav a:hover {
+    text-decoration: underline;
+}
+.main-content {
+    flex: 1;
+    padding: 20px;
+    text-align: center;
+}
+.footer {
+    margin-top: auto;
+}
+.login-container, .register-container {
+    background-color: #ffffff;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    text-align: center;
+    width: 300px;
+    margin: auto;
+}
+.login-container h1, .register-container h1 {
+    margin-bottom: 20px;
+}
+.login-container input, .register-container input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+.login-container button, .register-container button {
+    width: 100%;
+    padding: 10px;
+    background-color: #076eff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.login-container button:hover, .register-container button:hover {
+    background-color: #076eff;
+}
+.login-container a, .register-container a {
+    display: block;
+    margin-top: 10px;
+    color: #076eff;
+    text-decoration: none;
+}
+.login-container a:hover, .register-container a:hover {
+    text-decoration: underline;
+}
+
+/* estilos de catalogo de viages */
+
+.calendario {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: white;
+}
+.calendario h2 {
+    margin: 0 0 10px 0;
+}
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+form label {
+    font-weight: bold;
+}
+form input, form select, form button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+}
+form button {
+    background-color: #076eff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+form button:hover {
+    background-color: #076eff;
+}
+
+/* ...estilos de Busar Viajes... */
+
+.resultados {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+}
+.resultados h2 {
+    margin: 0;
+    font-size: 1.2em;
+    font-weight: bold;
+    padding: 10px;
+    background-color: white;
+    border-radius: 4px;
+}
+
+
+/* ...estilos de detalles de viaje... */
+
+button {
+    padding: 10px 20px;
+    margin-top: 20px;
+    background-color: #076eff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+button:hover {
+    background-color: #076eff;
+}
+
+/* ...estilos de confirmacion de viajes... */
+
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+form label {
+    font-weight: bold;
+}
+form input, form button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+}
+form button {
+    background-color: #076eff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+form button:hover {
+    background-color: #076eff;
+}
+
+/* ...estilos de administracion... */
+
+button {
+    padding: 10px 20px;
+    margin: 5px;
+    background-color: #076eff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+button:hover {
+    background-color: #076eff;
+}
+.paquete {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
+}
+
+/* ...estilos agregar paquetes... */
+
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+form label {
+    font-weight: bold;
+}
+form input, form textarea, form button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+}
+form button {
+    background-color: #076eff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+form button:hover {
+    background-color: #076eff;
+}
+
+/* ...estilos de contacto... */
+
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+form label {
+    font-weight: bold;
+}
+form input, form button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+}
+form button {
+    background-color: #076eff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+form button:hover {
+    background-color: #076eff;
+}
+
+/* Añadir estos estilos al final del archivo style.css */
+
+/* Añadir estos estilos al final del archivo style.css */
+
+.destinos {
+    margin-top: 20px;
+}
+
+.destinos-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.destino {
+    width: 200px;
+    height: 200px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.destino h3 {
+    margin: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 5px 10px;
+    border-radius: 4px;
+}
