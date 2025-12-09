@@ -21,10 +21,10 @@ if (empty($_SESSION['csrf_token'])) {
         <?php
         if (isset($_SESSION['user']) && is_string($_SESSION['user'])) {
             $usuario = htmlspecialchars($_SESSION['user'], ENT_QUOTES, 'UTF-8');
-            print "Usuario: {$usuario}";
-            print '<a href="logout.php">Cerrar sesión</a>';
+            echo "Usuario: {$usuario}";
+            echo ' <a href="logout.php">Cerrar sesión</a>';
         } else {
-            print '<a href="login_form.php" style="color: white;">Iniciar Sesión</a>';
+            echo '<a href="login_form.php" style="color: white;">Iniciar Sesión</a>';
         }
         ?>
         </div>
@@ -39,7 +39,9 @@ if (empty($_SESSION['csrf_token'])) {
     <div class="main-content">
         <h1>Confirmar Reserva</h1>
         <form action="procesar_reserva.php" method="post">
-            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>">
+            <?php if (isset($_SESSION['csrf_token'])): ?>
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>">
+            <?php endif; ?>
             <label for="email">Ingrese su correo para confirmar su reserva:</label>
             <input type="email" id="email" name="email" placeholder="Correo electrónico" required>
             <button type="submit">Confirmar Reserva</button>
@@ -50,7 +52,4 @@ if (empty($_SESSION['csrf_token'])) {
     </div>
 </body>
 </html>
-
-
-
 
